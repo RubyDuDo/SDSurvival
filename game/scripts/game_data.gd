@@ -12,9 +12,26 @@ const GIG_INCOME_FULLTIME := 520   # 全职零工收入（消耗 5 能量）
 const GIG_ENERGY_PARTTIME := 3
 const GIG_ENERGY_FULLTIME := 5
 const OFFER_VALIDITY_WEEKS := 2
+const MARKET_REFRESH_WEEKS := [1, 4, 7, 10]  # 岗位市场刷新的周次
+const LISTINGS_PER_REFRESH := 5               # 每次刷新生成的岗位数
+
+# ── 公司名池 ──
+const COMPANIES: Array[String] = [
+	"赛博科技", "码农互联", "极客云", "量子前端", "深渊后端",
+	"无限循环", "栈溢出", "指针工坊", "字节飞扬", "代码农场",
+	"算法园", "二叉树科技", "哈希工业", "递归传媒", "泛型集团",
+	"接口科技", "类型擦除", "虚函数", "内存泄漏", "段错误",
+]
 
 # ── 技能枚举 ──
 enum SkillType { SYSTEM, APPLICATION, INTERVIEW }
+
+# ── 市场偏向 ──
+enum MarketBias {
+	BALANCED,      # 均衡：系统 / 应用各约 50%
+	SYSTEM_HEAVY,  # 系统偏：系统岗位占约 70%
+	APP_HEAVY,     # 应用偏：应用岗位占约 70%
+}
 
 # ── 求职状态 ──
 enum ApplicationStatus {
@@ -26,7 +43,7 @@ enum ApplicationStatus {
 	REJECTED,         # 被拒
 }
 
-# ── 岗位定义 ──
+# ── 岗位定义（模板） ──
 class JobDef:
 	var id: String
 	var title: String
@@ -44,7 +61,7 @@ class JobDef:
 		weekly_salary = p_salary
 		energy_cost = p_energy
 
-# ── 所有岗位 ──
+# ── 所有岗位模板 ──
 static func get_all_jobs() -> Array[JobDef]:
 	return [
 		# 系统开发方向
@@ -57,13 +74,29 @@ static func get_all_jobs() -> Array[JobDef]:
 		JobDef.new("senior_product", "高级产品工程师", SkillType.APPLICATION, 8, 1700, 5),
 	]
 
+# ── 岗位实例（市场上的具体职位：模板 + 公司名 + 唯一 ID） ──
+class JobListing:
+	var listing_id: String
+	var job: JobDef
+	var company: String
+
+	func _init(p_listing_id: String, p_job: JobDef, p_company: String) -> void:
+		listing_id = p_listing_id
+		job = p_job
+		company = p_company
+
 # ── 求职申请 ──
 class JobApplication:
-	var job: JobDef
+	var listing: JobListing
 	var status: ApplicationStatus
 	var offer_weeks_left: int  # offer 剩余有效周数
 
-	func _init(p_job: JobDef) -> void:
-		job = p_job
+	func _init(p_listing: JobListing) -> void:
+		listing = p_listing
 		status = ApplicationStatus.APPLIED
 		offer_weeks_left = 0
+
+# ── 技能升级所需 XP（每两级递增一次） ──
+# 升到第 N 级需要 ceil(N/2) 点 XP：1,2级→1；3,4级→2；5,6级→3；7,8级→4；9,10级→5
+static func xp_needed_for_level(target_level: int) -> int:
+	return (target_level + 1) / 2

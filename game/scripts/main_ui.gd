@@ -59,7 +59,7 @@ func _update_status() -> void:
 		"技能：系统开发 Lv.%d(%s)  应用开发 Lv.%d(%s)  面试技巧 Lv.%d(%s)\n" % [
 			skill_sys, xp_sys, skill_app, xp_app, skill_int, xp_int] +
 		"状态：%s\n" % job_text +
-		"可用能量：%d / %d" % [free_energy, GameData.ENERGY_PER_WEEK]
+		"可用能量：%d / %d    市场动态：%s" % [free_energy, GameData.ENERGY_PER_WEEK, game.get_market_bias_text()]
 	)
 
 
@@ -68,8 +68,8 @@ func _update_job_progress() -> void:
 		job_progress_label.text = "（无求职进度）"
 		return
 	var lines: Array[String] = []
-	for job_id in game.applications:
-		var app: GameData.JobApplication = game.applications[job_id]
+	for listing_id in game.applications:
+		var app: GameData.JobApplication = game.applications[listing_id]
 		var status_text := ""
 		match app.status:
 			GameData.ApplicationStatus.APPLIED:
@@ -83,12 +83,11 @@ func _update_job_progress() -> void:
 			GameData.ApplicationStatus.REJECTED:
 				status_text = "已拒绝"
 		if app.status != GameData.ApplicationStatus.REJECTED:
-			lines.append("· %s — %s" % [app.job.title, status_text])
+			lines.append("· %s [%s] — %s" % [app.listing.job.title, app.listing.company, status_text])
 	job_progress_label.text = "\n".join(lines) if lines.size() > 0 else "（无求职进度）"
 
 
 func _update_action_list() -> void:
-	# 清除旧按钮
 	for child in action_list.get_children():
 		child.queue_free()
 
@@ -112,23 +111,23 @@ func _update_action_list() -> void:
 			free >= GameData.GIG_ENERGY_FULLTIME, _on_gig_fulltime)
 	_add_action_button("投递简历（能量 -1）", free >= 1, _on_apply)
 
-	# 面试按钮 - 列出有面试机会的岗位
-	for job_id in game.applications:
-		var app: GameData.JobApplication = game.applications[job_id]
+	# 面试按钮
+	for listing_id in game.applications:
+		var app: GameData.JobApplication = game.applications[listing_id]
 		if app.status == GameData.ApplicationStatus.HAS_INTERVIEW:
-			var btn_text := "参加面试：%s（能量 -2）" % app.job.title
-			_add_action_button(btn_text, free >= 2, _on_interview.bind(job_id))
+			var btn_text := "参加面试：%s [%s]（能量 -2）" % [app.listing.job.title, app.listing.company]
+			_add_action_button(btn_text, free >= 2, _on_interview.bind(listing_id))
 
 	# Offer 操作
-	for job_id in game.applications:
-		var app: GameData.JobApplication = game.applications[job_id]
+	for listing_id in game.applications:
+		var app: GameData.JobApplication = game.applications[listing_id]
 		if app.status == GameData.ApplicationStatus.OFFER:
 			_add_action_button(
-				"接受 Offer：%s（$%d/周）" % [app.job.title, app.job.weekly_salary],
-				true, _on_accept_offer.bind(job_id))
+				"接受 Offer：%s [%s]（$%d/周）" % [app.listing.job.title, app.listing.company, app.listing.job.weekly_salary],
+				true, _on_accept_offer.bind(listing_id))
 			_add_action_button(
-				"拒绝 Offer：%s" % app.job.title,
-				true, _on_reject_offer.bind(job_id))
+				"拒绝 Offer：%s [%s]" % [app.listing.job.title, app.listing.company],
+				true, _on_reject_offer.bind(listing_id))
 
 	# 辞职
 	if game.current_job and not game.pending_quit:
@@ -175,16 +174,16 @@ func _on_gig_fulltime() -> void:
 func _on_apply() -> void:
 	_show_apply_menu()
 
-func _on_interview(job_id: String) -> void:
-	game.action_interview(job_id)
+func _on_interview(listing_id: String) -> void:
+	game.action_interview(listing_id)
 	_refresh_ui()
 
-func _on_accept_offer(job_id: String) -> void:
-	game.action_accept_offer(job_id)
+func _on_accept_offer(listing_id: String) -> void:
+	game.action_accept_offer(listing_id)
 	_refresh_ui()
 
-func _on_reject_offer(job_id: String) -> void:
-	game.action_reject_offer(job_id)
+func _on_reject_offer(listing_id: String) -> void:
+	game.action_reject_offer(listing_id)
 	_refresh_ui()
 
 func _on_quit() -> void:
@@ -193,28 +192,30 @@ func _on_quit() -> void:
 
 
 # ════════════════════════════════════════
-#  投递子菜单
+#  投递子菜单（显示当前市场岗位）
 # ════════════════════════════════════════
 
 func _show_apply_menu() -> void:
 	sub_menu_panel.visible = true
-	sub_menu_title.text = "选择投递岗位："
+	sub_menu_title.text = "选择投递岗位（本期市场：%s）：" % game.get_market_bias_text()
 	for child in sub_menu_list.get_children():
 		child.queue_free()
 
-	for job in game.all_jobs:
+	for listing in game.current_listings:
+		var job := listing.job
 		var player_skill: int = game.skills[job.skill_type]
 		var meets := player_skill >= job.skill_required
 		var mark := "✓" if meets else "✗"
 		var skill_name := "系统" if job.skill_type == GameData.SkillType.SYSTEM else "应用"
-		var text := "%s - 要求%s %d | 你的%s %d %s  (周薪$%d)" % [
-			job.title, skill_name, job.skill_required,
-			skill_name, player_skill, mark, job.weekly_salary]
+		var text := "[%s] %s - 要求%s %d | 你的%s %d %s  周薪$%d" % [
+			listing.company, job.title,
+			skill_name, job.skill_required,
+			skill_name, player_skill, mark,
+			job.weekly_salary]
 
-		# 检查是否可以投递
 		var can_apply := true
-		if game.applications.has(job.id):
-			var app: GameData.JobApplication = game.applications[job.id]
+		if game.applications.has(listing.listing_id):
+			var app: GameData.JobApplication = game.applications[listing.listing_id]
 			if app.status != GameData.ApplicationStatus.NONE and \
 					app.status != GameData.ApplicationStatus.REJECTED:
 				can_apply = false
@@ -224,7 +225,7 @@ func _show_apply_menu() -> void:
 		btn.text = text
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		btn.disabled = not can_apply
-		btn.pressed.connect(_on_apply_job.bind(job.id))
+		btn.pressed.connect(_on_apply_job.bind(listing.listing_id))
 		btn.add_theme_font_size_override("font_size", 16)
 		sub_menu_list.add_child(btn)
 
@@ -235,8 +236,8 @@ func _show_apply_menu() -> void:
 	sub_menu_list.add_child(back_btn)
 
 
-func _on_apply_job(job_id: String) -> void:
-	game.action_apply(job_id)
+func _on_apply_job(listing_id: String) -> void:
+	game.action_apply(listing_id)
 	sub_menu_panel.visible = false
 	_refresh_ui()
 
@@ -274,6 +275,10 @@ func _show_settlement(result: GameState.WeekSettlement) -> void:
 		lines.append("")
 		for title in result.expired_offers:
 			lines.append("⚠ Offer 已过期：%s" % title)
+
+	if result.market_refreshed:
+		lines.append("")
+		lines.append("★ 岗位市场已刷新！当前：%s" % game.get_market_bias_text())
 
 	if result.is_game_over:
 		lines.append("")
