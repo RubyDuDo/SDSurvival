@@ -11,6 +11,11 @@ var skills: Dictionary = {
 	GameData.SkillType.APPLICATION: 0,
 	GameData.SkillType.INTERVIEW: 0,
 }
+var skill_xp: Dictionary = {
+	GameData.SkillType.SYSTEM: 0,
+	GameData.SkillType.APPLICATION: 0,
+	GameData.SkillType.INTERVIEW: 0,
+}
 
 # ── 工作状态 ──
 var current_job: GameData.JobDef = null  # 当前在职岗位
@@ -45,17 +50,27 @@ func get_skill(skill_type: GameData.SkillType) -> int:
 	return skills[skill_type]
 
 
-## 学习技能（升到第 N 级需消耗 N 点能量）
+## 学习技能（每次 1 能量 +1 XP，XP 满自动升级；升到第 N 级需 N 点 XP）
 func action_study(skill_type: GameData.SkillType) -> bool:
 	var current_level: int = skills[skill_type]
 	if current_level >= GameData.MAX_SKILL_LEVEL:
 		return false
-	var cost: int = current_level + 1
-	if get_free_energy() < cost:
+	if get_free_energy() < 1:
 		return false
-	energy -= cost
-	skills[skill_type] = current_level + 1
+	energy -= 1
+	skill_xp[skill_type] += 1
+	if skill_xp[skill_type] >= current_level + 1:
+		skills[skill_type] = current_level + 1
+		skill_xp[skill_type] = 0
 	return true
+
+
+## 获取技能升级进度字符串，如 "2/4"；满级返回 "MAX"
+func get_skill_xp_progress(skill_type: GameData.SkillType) -> String:
+	var lv: int = skills[skill_type]
+	if lv >= GameData.MAX_SKILL_LEVEL:
+		return "MAX"
+	return "%d/%d" % [skill_xp[skill_type], lv + 1]
 
 
 ## 兼职零工（消耗 3 能量，获得 $280）

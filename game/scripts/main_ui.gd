@@ -43,6 +43,9 @@ func _update_status() -> void:
 	var skill_sys: int = game.get_skill(GameData.SkillType.SYSTEM)
 	var skill_app: int = game.get_skill(GameData.SkillType.APPLICATION)
 	var skill_int: int = game.get_skill(GameData.SkillType.INTERVIEW)
+	var xp_sys: String = game.get_skill_xp_progress(GameData.SkillType.SYSTEM)
+	var xp_app: String = game.get_skill_xp_progress(GameData.SkillType.APPLICATION)
+	var xp_int: String = game.get_skill_xp_progress(GameData.SkillType.INTERVIEW)
 
 	var job_text := "失业"
 	if game.current_job:
@@ -53,7 +56,8 @@ func _update_status() -> void:
 
 	var free_energy := game.get_free_energy()
 	status_label.text = (
-		"技能：系统开发 Lv.%d  应用开发 Lv.%d  面试技巧 Lv.%d\n" % [skill_sys, skill_app, skill_int] +
+		"技能：系统开发 Lv.%d(%s)  应用开发 Lv.%d(%s)  面试技巧 Lv.%d(%s)\n" % [
+			skill_sys, xp_sys, skill_app, xp_app, skill_int, xp_int] +
 		"状态：%s\n" % job_text +
 		"可用能量：%d / %d" % [free_energy, GameData.ENERGY_PER_WEEK]
 	)
@@ -90,17 +94,17 @@ func _update_action_list() -> void:
 
 	var free := game.get_free_energy()
 
-	var sys_cost: int = game.get_skill(GameData.SkillType.SYSTEM) + 1
-	var app_cost: int = game.get_skill(GameData.SkillType.APPLICATION) + 1
-	var int_cost: int = game.get_skill(GameData.SkillType.INTERVIEW) + 1
-	_add_action_button("学习系统开发（能量 -%d）" % sys_cost,
-			free >= sys_cost and game.get_skill(GameData.SkillType.SYSTEM) < GameData.MAX_SKILL_LEVEL,
+	var xp_sys_str: String = game.get_skill_xp_progress(GameData.SkillType.SYSTEM)
+	var xp_app_str: String = game.get_skill_xp_progress(GameData.SkillType.APPLICATION)
+	var xp_int_str: String = game.get_skill_xp_progress(GameData.SkillType.INTERVIEW)
+	_add_action_button("学习系统开发（能量 -1，进度 %s）" % xp_sys_str,
+			free >= 1 and game.get_skill(GameData.SkillType.SYSTEM) < GameData.MAX_SKILL_LEVEL,
 			_on_study_system)
-	_add_action_button("学习应用开发（能量 -%d）" % app_cost,
-			free >= app_cost and game.get_skill(GameData.SkillType.APPLICATION) < GameData.MAX_SKILL_LEVEL,
+	_add_action_button("学习应用开发（能量 -1，进度 %s）" % xp_app_str,
+			free >= 1 and game.get_skill(GameData.SkillType.APPLICATION) < GameData.MAX_SKILL_LEVEL,
 			_on_study_app)
-	_add_action_button("练习面试（能量 -%d）" % int_cost,
-			free >= int_cost and game.get_skill(GameData.SkillType.INTERVIEW) < GameData.MAX_SKILL_LEVEL,
+	_add_action_button("练习面试（能量 -1，进度 %s）" % xp_int_str,
+			free >= 1 and game.get_skill(GameData.SkillType.INTERVIEW) < GameData.MAX_SKILL_LEVEL,
 			_on_study_interview)
 	_add_action_button("兼职零工（能量 -%d，+$%d）" % [GameData.GIG_ENERGY_PARTTIME, GameData.GIG_INCOME_PARTTIME],
 			free >= GameData.GIG_ENERGY_PARTTIME, _on_gig_parttime)

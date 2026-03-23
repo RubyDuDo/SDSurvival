@@ -3,7 +3,7 @@ class_name GameData
 
 # ── 常量 ──
 const MAX_WEEKS := 12
-const INITIAL_CASH := 1200
+const INITIAL_CASH := 2000
 const WEEKLY_LIVING_COST := 500
 const ENERGY_PER_WEEK := 7
 const MAX_SKILL_LEVEL := 10
