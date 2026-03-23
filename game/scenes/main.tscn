@@ -1,0 +1,253 @@
+[gd_scene load_steps=2 format=3 uid="uid://c1a2b3c4d5e6f"]
+
+[ext_resource type="Script" uid="uid://c5n16rujrrhlg" path="res://scripts/main_ui.gd" id="1_main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.08, 0.12, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="HeaderLabel" type="RichTextLabel" parent="MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.9, 0.85, 0.5, 1)
+theme_override_font_sizes/normal_font_size = 22
+bbcode_enabled = true
+text = "第 1 周 / 52 周          现金: $3,000"
+fit_content = true
+
+[node name="HSeparator1" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="StatusLabel" type="RichTextLabel" parent="MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "技能：系统开发 Lv.0  应用开发 Lv.0  面试技巧 Lv.0
+状态：失业
+可用能量：7 / 7"
+fit_content = true
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ProgressTitle" type="Label" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "求职进度："
+
+[node name="JobProgressLabel" type="RichTextLabel" parent="MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "（无求职进度）"
+fit_content = true
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ActionTitle" type="Label" parent="MarginContainer/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.6, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 18
+text = "本周行动："
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ActionList" type="VBoxContainer" parent="MarginContainer/VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SettlementPanel" type="Panel" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettlementBG" type="ColorRect" parent="SettlementPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 0.95)
+
+[node name="SettlementMargin" type="MarginContainer" parent="SettlementPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 60
+
+[node name="VBox" type="VBoxContainer" parent="SettlementPanel/SettlementMargin"]
+layout_mode = 2
+
+[node name="SettlementLabel" type="RichTextLabel" parent="SettlementPanel/SettlementMargin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+
+[node name="ContinueButton" type="Button" parent="SettlementPanel/SettlementMargin/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "继续"
+
+[node name="EndingPanel" type="Panel" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EndingBG" type="ColorRect" parent="EndingPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.05, 0.98)
+
+[node name="EndingMargin" type="MarginContainer" parent="EndingPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 100
+theme_override_constants/margin_top = 100
+theme_override_constants/margin_right = 100
+theme_override_constants/margin_bottom = 100
+
+[node name="VBox" type="VBoxContainer" parent="EndingPanel/EndingMargin"]
+layout_mode = 2
+alignment = 1
+
+[node name="EndingLabel" type="RichTextLabel" parent="EndingPanel/EndingMargin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.95, 0.9, 0.5, 1)
+theme_override_font_sizes/normal_font_size = 28
+bbcode_enabled = true
+
+[node name="RestartButton" type="Button" parent="EndingPanel/EndingMargin/VBox"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "重新开始"
+
+[node name="SubMenuPanel" type="Panel" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubMenuBG" type="ColorRect" parent="SubMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 0.95)
+
+[node name="SubMenuMargin" type="MarginContainer" parent="SubMenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 80
+theme_override_constants/margin_top = 60
+theme_override_constants/margin_right = 80
+theme_override_constants/margin_bottom = 60
+
+[node name="VBox" type="VBoxContainer" parent="SubMenuPanel/SubMenuMargin"]
+layout_mode = 2
+
+[node name="SubMenuTitle" type="Label" parent="SubMenuPanel/SubMenuMargin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
+theme_override_font_sizes/font_size = 22
+text = "选择投递岗位："
+
+[node name="ScrollContainer" type="ScrollContainer" parent="SubMenuPanel/SubMenuMargin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SubMenuList" type="VBoxContainer" parent="SubMenuPanel/SubMenuMargin/VBox/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[connection signal="pressed" from="SettlementPanel/SettlementMargin/VBox/ContinueButton" to="." method="_on_settlement_continue"]
+[connection signal="pressed" from="EndingPanel/EndingMargin/VBox/RestartButton" to="." method="_on_restart"]
