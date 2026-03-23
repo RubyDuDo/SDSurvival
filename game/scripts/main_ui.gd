@@ -90,10 +90,22 @@ func _update_action_list() -> void:
 
 	var free := game.get_free_energy()
 
-	_add_action_button("学习系统开发（能量 -1）", free >= 1, _on_study_system)
-	_add_action_button("学习应用开发（能量 -1）", free >= 1, _on_study_app)
-	_add_action_button("练习面试（能量 -1）", free >= 1, _on_study_interview)
-	_add_action_button("打零工（能量 -1，+$%d）" % GameData.GIG_INCOME, free >= 1, _on_gig)
+	var sys_cost: int = game.get_skill(GameData.SkillType.SYSTEM) + 1
+	var app_cost: int = game.get_skill(GameData.SkillType.APPLICATION) + 1
+	var int_cost: int = game.get_skill(GameData.SkillType.INTERVIEW) + 1
+	_add_action_button("学习系统开发（能量 -%d）" % sys_cost,
+			free >= sys_cost and game.get_skill(GameData.SkillType.SYSTEM) < GameData.MAX_SKILL_LEVEL,
+			_on_study_system)
+	_add_action_button("学习应用开发（能量 -%d）" % app_cost,
+			free >= app_cost and game.get_skill(GameData.SkillType.APPLICATION) < GameData.MAX_SKILL_LEVEL,
+			_on_study_app)
+	_add_action_button("练习面试（能量 -%d）" % int_cost,
+			free >= int_cost and game.get_skill(GameData.SkillType.INTERVIEW) < GameData.MAX_SKILL_LEVEL,
+			_on_study_interview)
+	_add_action_button("兼职零工（能量 -%d，+$%d）" % [GameData.GIG_ENERGY_PARTTIME, GameData.GIG_INCOME_PARTTIME],
+			free >= GameData.GIG_ENERGY_PARTTIME, _on_gig_parttime)
+	_add_action_button("全职零工（能量 -%d，+$%d）" % [GameData.GIG_ENERGY_FULLTIME, GameData.GIG_INCOME_FULLTIME],
+			free >= GameData.GIG_ENERGY_FULLTIME, _on_gig_fulltime)
 	_add_action_button("投递简历（能量 -1）", free >= 1, _on_apply)
 
 	# 面试按钮 - 列出有面试机会的岗位
@@ -148,8 +160,12 @@ func _on_study_interview() -> void:
 	game.action_study(GameData.SkillType.INTERVIEW)
 	_refresh_ui()
 
-func _on_gig() -> void:
-	game.action_gig()
+func _on_gig_parttime() -> void:
+	game.action_gig_parttime()
+	_refresh_ui()
+
+func _on_gig_fulltime() -> void:
+	game.action_gig_fulltime()
 	_refresh_ui()
 
 func _on_apply() -> void:

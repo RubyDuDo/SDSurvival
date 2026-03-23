@@ -45,21 +45,34 @@ func get_skill(skill_type: GameData.SkillType) -> int:
 	return skills[skill_type]
 
 
-## 学习技能
+## 学习技能（升到第 N 级需消耗 N 点能量）
 func action_study(skill_type: GameData.SkillType) -> bool:
-	if get_free_energy() < 1:
+	var current_level: int = skills[skill_type]
+	if current_level >= GameData.MAX_SKILL_LEVEL:
 		return false
-	energy -= 1
-	skills[skill_type] = mini(skills[skill_type] + 1, GameData.MAX_SKILL_LEVEL)
+	var cost: int = current_level + 1
+	if get_free_energy() < cost:
+		return false
+	energy -= cost
+	skills[skill_type] = current_level + 1
 	return true
 
 
-## 打零工
-func action_gig() -> bool:
-	if get_free_energy() < 1:
+## 兼职零工（消耗 3 能量，获得 $280）
+func action_gig_parttime() -> bool:
+	if get_free_energy() < GameData.GIG_ENERGY_PARTTIME:
 		return false
-	energy -= 1
-	cash += GameData.GIG_INCOME
+	energy -= GameData.GIG_ENERGY_PARTTIME
+	cash += GameData.GIG_INCOME_PARTTIME
+	return true
+
+
+## 全职零工（消耗 5 能量，获得 $520）
+func action_gig_fulltime() -> bool:
+	if get_free_energy() < GameData.GIG_ENERGY_FULLTIME:
+		return false
+	energy -= GameData.GIG_ENERGY_FULLTIME
+	cash += GameData.GIG_INCOME_FULLTIME
 	return true
 
 
@@ -280,5 +293,5 @@ func _find_job(job_id: String) -> GameData.JobDef:
 func _calc_interview_pass_rate(job: GameData.JobDef) -> float:
 	var player_skill: int = skills[job.skill_type]
 	var interview_skill: int = skills[GameData.SkillType.INTERVIEW]
-	var rate := 0.5 + (player_skill - job.skill_required) * 0.1 + interview_skill * 0.03
-	return clampf(rate, 0.3, 0.95)
+	var rate := 0.35 + (player_skill - job.skill_required) * 0.08 + interview_skill * 0.02
+	return clampf(rate, 0.2, 0.95)

@@ -2,12 +2,15 @@
 class_name GameData
 
 # ── 常量 ──
-const MAX_WEEKS := 52
-const INITIAL_CASH := 3000
-const WEEKLY_LIVING_COST := 400
+const MAX_WEEKS := 12
+const INITIAL_CASH := 1200
+const WEEKLY_LIVING_COST := 500
 const ENERGY_PER_WEEK := 7
 const MAX_SKILL_LEVEL := 10
-const GIG_INCOME := 150
+const GIG_INCOME_PARTTIME := 280   # 兼职零工收入（消耗 3 能量）
+const GIG_INCOME_FULLTIME := 520   # 全职零工收入（消耗 5 能量）
+const GIG_ENERGY_PARTTIME := 3
+const GIG_ENERGY_FULLTIME := 5
 const OFFER_VALIDITY_WEEKS := 2
 
 # ── 技能枚举 ──
@@ -45,13 +48,13 @@ class JobDef:
 static func get_all_jobs() -> Array[JobDef]:
 	return [
 		# 系统开发方向
-		JobDef.new("outsource_test", "外包测试", SkillType.SYSTEM, 2, 250, 4),
-		JobDef.new("junior_backend", "初级后端", SkillType.SYSTEM, 5, 550, 5),
-		JobDef.new("senior_system", "高级系统工程师", SkillType.SYSTEM, 8, 950, 5),
+		JobDef.new("outsource_test", "外包测试", SkillType.SYSTEM, 3, 780, 4),
+		JobDef.new("junior_backend", "初级后端", SkillType.SYSTEM, 5, 1100, 5),
+		JobDef.new("senior_system", "高级系统工程师", SkillType.SYSTEM, 8, 1800, 5),
 		# 应用开发方向
-		JobDef.new("parttime_frontend", "兼职前端", SkillType.APPLICATION, 2, 200, 3),
-		JobDef.new("fullstack_dev", "全栈开发", SkillType.APPLICATION, 5, 500, 5),
-		JobDef.new("senior_product", "高级产品工程师", SkillType.APPLICATION, 8, 900, 5),
+		JobDef.new("parttime_frontend", "兼职前端", SkillType.APPLICATION, 3, 680, 3),
+		JobDef.new("fullstack_dev", "全栈开发", SkillType.APPLICATION, 5, 1000, 5),
+		JobDef.new("senior_product", "高级产品工程师", SkillType.APPLICATION, 8, 1700, 5),
 	]
 
 # ── 求职申请 ──
