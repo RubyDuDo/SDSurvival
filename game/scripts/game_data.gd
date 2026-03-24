@@ -7,13 +7,17 @@ const INITIAL_CASH := 2000
 const WEEKLY_LIVING_COST := 500
 const ENERGY_PER_WEEK := 7
 const MAX_SKILL_LEVEL := 10
-const GIG_INCOME_PARTTIME := 280   # 兼职零工收入（消耗 3 能量）
-const GIG_INCOME_FULLTIME := 520   # 全职零工收入（消耗 5 能量）
+const GIG_INCOME_PARTTIME := 280
+const GIG_INCOME_FULLTIME := 520
 const GIG_ENERGY_PARTTIME := 3
 const GIG_ENERGY_FULLTIME := 5
 const OFFER_VALIDITY_WEEKS := 2
-const MARKET_REFRESH_WEEKS := [1, 4, 7, 10]  # 岗位市场刷新的周次
-const LISTINGS_PER_REFRESH := 5               # 每次刷新生成的岗位数
+const MARKET_REFRESH_WEEKS := [1, 4, 7, 10]
+const LISTINGS_PER_REFRESH := 5
+
+# 批量投递惩罚系数
+const BATCH_PENALTY_2 := 0.80
+const BATCH_PENALTY_3 := 0.65
 
 # ── 公司名池 ──
 const COMPANIES: Array[String] = [
@@ -24,23 +28,29 @@ const COMPANIES: Array[String] = [
 ]
 
 # ── 技能枚举 ──
-enum SkillType { SYSTEM, APPLICATION, INTERVIEW }
+enum SkillType {
+	SYSTEM,       # 系统开发（专业，系统方向）
+	APPLICATION,  # 应用开发（专业，应用方向）
+	INTERVIEW,    # 面试技巧（通用）
+	ENGLISH,      # 英语（通用，影响所有岗位简历匹配）
+	CPP,          # C++（专业，仅影响系统方向岗位）
+}
 
 # ── 市场偏向 ──
 enum MarketBias {
-	BALANCED,      # 均衡：系统 / 应用各约 50%
-	SYSTEM_HEAVY,  # 系统偏：系统岗位占约 70%
-	APP_HEAVY,     # 应用偏：应用岗位占约 70%
+	BALANCED,
+	SYSTEM_HEAVY,
+	APP_HEAVY,
 }
 
 # ── 求职状态 ──
 enum ApplicationStatus {
 	NONE,
-	APPLIED,          # 已投递，等待下周结果
-	HAS_INTERVIEW,    # 获得面试机会
-	INTERVIEWED,      # 已面试，等待下周结果
-	OFFER,            # 拿到 offer
-	REJECTED,         # 被拒
+	APPLIED,
+	HAS_INTERVIEW,
+	INTERVIEWED,
+	OFFER,
+	REJECTED,
 }
 
 # ── 岗位定义（模板） ──
@@ -49,32 +59,36 @@ class JobDef:
 	var title: String
 	var skill_type: SkillType
 	var skill_required: int
+	var english_required: int
+	var cpp_required: int     # 仅系统方向有效
 	var weekly_salary: int
 	var energy_cost: int
 
 	func _init(p_id: String, p_title: String, p_skill_type: SkillType,
-			p_skill_req: int, p_salary: int, p_energy: int) -> void:
+			p_skill_req: int, p_english_req: int, p_cpp_req: int,
+			p_salary: int, p_energy: int) -> void:
 		id = p_id
 		title = p_title
 		skill_type = p_skill_type
 		skill_required = p_skill_req
+		english_required = p_english_req
+		cpp_required = p_cpp_req
 		weekly_salary = p_salary
 		energy_cost = p_energy
 
 # ── 所有岗位模板 ──
+#                                         主技能  英语  C++  周薪   能量
 static func get_all_jobs() -> Array[JobDef]:
 	return [
-		# 系统开发方向
-		JobDef.new("outsource_test", "外包测试", SkillType.SYSTEM, 3, 780, 4),
-		JobDef.new("junior_backend", "初级后端", SkillType.SYSTEM, 5, 1100, 5),
-		JobDef.new("senior_system", "高级系统工程师", SkillType.SYSTEM, 8, 1800, 5),
-		# 应用开发方向
-		JobDef.new("parttime_frontend", "兼职前端", SkillType.APPLICATION, 3, 680, 3),
-		JobDef.new("fullstack_dev", "全栈开发", SkillType.APPLICATION, 5, 1000, 5),
-		JobDef.new("senior_product", "高级产品工程师", SkillType.APPLICATION, 8, 1700, 5),
+		JobDef.new("outsource_test",   "外包测试",     SkillType.SYSTEM,       3, 1, 1,  780, 4),
+		JobDef.new("junior_backend",   "初级后端",     SkillType.SYSTEM,       5, 2, 2, 1100, 5),
+		JobDef.new("senior_system",    "高级系统工程师", SkillType.SYSTEM,      8, 3, 4, 1800, 5),
+		JobDef.new("parttime_frontend","兼职前端",     SkillType.APPLICATION,  3, 1, 0,  680, 3),
+		JobDef.new("fullstack_dev",    "全栈开发",     SkillType.APPLICATION,  5, 2, 0, 1000, 5),
+		JobDef.new("senior_product",   "高级产品工程师", SkillType.APPLICATION, 8, 3, 0, 1700, 5),
 	]
 
-# ── 岗位实例（市场上的具体职位：模板 + 公司名 + 唯一 ID） ──
+# ── 岗位实例 ──
 class JobListing:
 	var listing_id: String
 	var job: JobDef
@@ -89,14 +103,16 @@ class JobListing:
 class JobApplication:
 	var listing: JobListing
 	var status: ApplicationStatus
-	var offer_weeks_left: int  # offer 剩余有效周数
+	var offer_weeks_left: int
+	var apply_penalty: float  # 批量投递惩罚系数（1.0 = 无惩罚）
 
-	func _init(p_listing: JobListing) -> void:
+	func _init(p_listing: JobListing, p_penalty: float = 1.0) -> void:
 		listing = p_listing
 		status = ApplicationStatus.APPLIED
 		offer_weeks_left = 0
+		apply_penalty = p_penalty
 
-# ── 技能升级所需 XP（每两级递增一次） ──
-# 升到第 N 级需要 ceil(N/2) 点 XP：1,2级→1；3,4级→2；5,6级→3；7,8级→4；9,10级→5
+# ── 技能升级 XP 需求（每两级递增一次）──
+# 升到第 N 级需要 ceil(N/2) 点：1,2级→1；3,4级→2；5,6级→3；7,8级→4；9,10级→5
 static func xp_needed_for_level(target_level: int) -> int:
 	return (target_level + 1) / 2
