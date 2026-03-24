@@ -46,11 +46,21 @@ func _update_status() -> void:
 	var free_energy := game.get_free_energy()
 
 	var job_text := "失业"
-	if game.current_job:
+	if game.current_job_listing:
 		job_text = "在职 - %s（周薪 $%d，占用 %d 能量）" % [
-			game.current_job.title, game.current_job.weekly_salary, game.current_job.energy_cost]
+			game.current_job_listing.job.title,
+			game.current_job_listing.actual_salary,
+			game.current_job_listing.job.energy_cost]
 		if game.pending_quit:
 			job_text += " [已提辞职]"
+
+	# 状态效果提示
+	var effects: Array[String] = []
+	if game.market_downturn_weeks_left > 0:
+		effects.append("📉 寒冬中（剩 %d 周）" % game.market_downturn_weeks_left)
+	if game.double_xp_this_week:
+		effects.append("💡 双倍XP")
+	var effects_line := ("    " + "  |  ".join(effects)) if effects.size() > 0 else ""
 
 	status_label.text = (
 		"专业：系统 Lv.%d(%s)  应用 Lv.%d(%s)  C++ Lv.%d(%s)\n" % [
@@ -60,8 +70,13 @@ func _update_status() -> void:
 		"通用：面试技巧 Lv.%d(%s)  英语 Lv.%d(%s)\n" % [
 			s[ST.INTERVIEW], game.get_skill_xp_progress(ST.INTERVIEW),
 			s[ST.ENGLISH], game.get_skill_xp_progress(ST.ENGLISH)] +
+		"人脉：%d/%d    作品集：系统 %d/%d  应用 %d/%d\n" % [
+			game.networking_points, GameData.MAX_NETWORKING_POINTS,
+			game.portfolio_system, GameData.MAX_PORTFOLIO_POINTS,
+			game.portfolio_application, GameData.MAX_PORTFOLIO_POINTS] +
 		"状态：%s\n" % job_text +
-		"可用能量：%d / %d    市场：%s" % [free_energy, GameData.ENERGY_PER_WEEK, game.get_market_bias_text()]
+		"可用能量：%d / %d    市场：%s%s" % [
+			free_energy, game.energy, game.get_market_bias_text(), effects_line]
 	)
 
 
@@ -85,10 +100,12 @@ func _update_job_progress() -> void:
 			GameData.ApplicationStatus.REJECTED:
 				status_text = "已拒绝"
 		if app.status != GameData.ApplicationStatus.REJECTED:
-			var penalty_text := ""
-			if app.apply_penalty < 1.0:
-				penalty_text = " [海投×%.0f%%]" % (app.apply_penalty * 100)
-			lines.append("· %s [%s]%s — %s" % [app.listing.job.title, app.listing.company, penalty_text, status_text])
+			var modifier_text := ""
+			if app.apply_penalty > 1.0:
+				modifier_text = " [内推+50%%]"
+			elif app.apply_penalty < 1.0:
+				modifier_text = " [海投×%.0f%%]" % (app.apply_penalty * 100)
+			lines.append("· %s [%s]%s — %s" % [app.listing.job.title, app.listing.company, modifier_text, status_text])
 	job_progress_label.text = "\n".join(lines) if lines.size() > 0 else "（无求职进度）"
 
 
@@ -114,6 +131,19 @@ func _update_action_list() -> void:
 		"全职零工（能量 -%d，+$%d）" % [GameData.GIG_ENERGY_FULLTIME, GameData.GIG_INCOME_FULLTIME],
 		free >= GameData.GIG_ENERGY_FULLTIME, _on_gig_fulltime)
 
+	# ── 人脉 ──
+	var net_full := game.networking_points >= GameData.MAX_NETWORKING_POINTS
+	_add_action_button(
+		"维护人脉（能量 -1，人脉 %d → %d/%d）" % [
+			game.networking_points,
+			mini(game.networking_points + 1, GameData.MAX_NETWORKING_POINTS),
+			GameData.MAX_NETWORKING_POINTS],
+		free >= 1 and not net_full, _on_networking)
+
+	# ── 作品集 ──
+	_add_portfolio_btn(GameData.SkillType.SYSTEM, free)
+	_add_portfolio_btn(GameData.SkillType.APPLICATION, free)
+
 	# ── 投递（打开多选菜单）──
 	_add_action_button("投递简历（能量 -1，可一次投 1-3 家）", free >= 1, _on_apply)
 
@@ -129,17 +159,27 @@ func _update_action_list() -> void:
 		var app: GameData.JobApplication = game.applications[listing_id]
 		if app.status == GameData.ApplicationStatus.OFFER:
 			_add_action_button(
-				"接受 Offer：%s [%s]（$%d/周）" % [app.listing.job.title, app.listing.company, app.listing.job.weekly_salary],
+				"接受 Offer：%s [%s]（$%d/周）" % [app.listing.job.title, app.listing.company, app.listing.actual_salary],
 				true, _on_accept_offer.bind(listing_id))
 			_add_action_button(
 				"拒绝 Offer：%s [%s]" % [app.listing.job.title, app.listing.company],
 				true, _on_reject_offer.bind(listing_id))
 
 	# ── 辞职 ──
-	if game.current_job and not game.pending_quit:
+	if game.current_job_listing and not game.pending_quit:
 		_add_action_button("辞职", true, _on_quit)
 
 	_add_action_button(">>> 结束本周 <<<", true, _on_end_week)
+
+
+func _add_portfolio_btn(skill_type: GameData.SkillType, free: int) -> void:
+	var direction := "系统" if skill_type == GameData.SkillType.SYSTEM else "应用"
+	var pts := game.portfolio_system if skill_type == GameData.SkillType.SYSTEM else game.portfolio_application
+	var maxed := pts >= GameData.MAX_PORTFOLIO_POINTS
+	var label := "做个人项目·%s（能量 -3，作品集 %d → %d/%d）" % [
+		direction, pts, mini(pts + 1, GameData.MAX_PORTFOLIO_POINTS), GameData.MAX_PORTFOLIO_POINTS]
+	_add_action_button(label, free >= GameData.PORTFOLIO_ENERGY_COST and not maxed,
+		_on_portfolio.bind(skill_type))
 
 
 func _add_study_btn(label: String, skill_type: GameData.SkillType, free: int) -> void:
@@ -190,6 +230,14 @@ func _on_reject_offer(listing_id: String) -> void:
 	game.action_reject_offer(listing_id)
 	_refresh_ui()
 
+func _on_networking() -> void:
+	game.action_networking()
+	_refresh_ui()
+
+func _on_portfolio(skill_type: GameData.SkillType) -> void:
+	game.action_portfolio(skill_type)
+	_refresh_ui()
+
 func _on_quit() -> void:
 	game.action_quit()
 	_refresh_ui()
@@ -211,13 +259,13 @@ func _rebuild_apply_menu() -> void:
 	for child in sub_menu_list.get_children():
 		child.queue_free()
 
-	var selected_count := _apply_selection.values().count(true)
+	var selected_count: int = _apply_selection.values().count(true)
 
 	for listing in game.current_listings:
 		var job := listing.job
 		var player_primary: int = game.skills[job.skill_type]
 		var skill_name := "系统" if job.skill_type == GameData.SkillType.SYSTEM else "应用"
-		var diff := player_primary - job.skill_required
+		var diff := player_primary - listing.actual_skill_required
 
 		# 简单匹配度指示
 		var match_hint := ""
@@ -230,22 +278,22 @@ func _rebuild_apply_menu() -> void:
 
 		# 英语和C++状态
 		var eng_hint := ""
-		var eng_diff := game.skills[GameData.SkillType.ENGLISH] - job.english_required
+		var eng_diff: int = (game.skills[GameData.SkillType.ENGLISH] as int) - listing.actual_english_required
 		if eng_diff < 0:
-			eng_hint = " 英语差%d" % absf(eng_diff)
+			eng_hint = " 英语差%d" % absi(eng_diff)
 		var cpp_hint := ""
-		if job.skill_type == GameData.SkillType.SYSTEM and job.cpp_required > 0:
-			var cpp_diff := game.skills[GameData.SkillType.CPP] - job.cpp_required
+		if job.skill_type == GameData.SkillType.SYSTEM and listing.actual_cpp_required > 0:
+			var cpp_diff: int = (game.skills[GameData.SkillType.CPP] as int) - listing.actual_cpp_required
 			if cpp_diff < 0:
-				cpp_hint = " C++差%d" % absf(cpp_diff)
+				cpp_hint = " C++差%d" % absi(cpp_diff)
 
-		var selected := _apply_selection.get(listing.listing_id, false)
+		var selected: bool = _apply_selection.get(listing.listing_id, false)
 		var prefix := "[✓已选] " if selected else ""
 
 		var text := "%s[%s] %s | 要求%s%d%s 英%d 周薪$%d%s%s" % [
 			prefix, listing.company, job.title,
-			skill_name, job.skill_required, match_hint,
-			job.english_required, job.weekly_salary,
+			skill_name, listing.actual_skill_required, match_hint,
+			listing.actual_english_required, listing.actual_salary,
 			eng_hint, cpp_hint]
 
 		# 进行中的申请不可再选
@@ -257,7 +305,7 @@ func _rebuild_apply_menu() -> void:
 				in_progress = true
 				text += " [进行中]"
 
-		var can_select := not in_progress and (selected or selected_count < 3)
+		var can_select: bool = not in_progress and (selected or selected_count < 3)
 
 		var btn := Button.new()
 		btn.text = text
@@ -290,7 +338,7 @@ func _rebuild_apply_menu() -> void:
 
 
 func _on_toggle_listing(listing_id: String) -> void:
-	var current := _apply_selection.get(listing_id, false)
+	var current: bool = _apply_selection.get(listing_id, false)
 	_apply_selection[listing_id] = not current
 	_rebuild_apply_menu()
 
@@ -343,9 +391,23 @@ func _show_settlement(result: GameState.WeekSettlement) -> void:
 		for title in result.expired_offers:
 			lines.append("⚠ Offer 已过期：%s" % title)
 
+	if not result.event_name.is_empty():
+		lines.append("")
+		lines.append("🎲 本周事件：%s" % result.event_name)
+		lines.append("   %s" % result.event_desc)
+
+	if result.market_downturn_started:
+		lines.append("")
+		lines.append("⚠ 行业寒冬来袭！岗位减少，竞争更激烈，持续 3 周。")
+	if result.market_downturn_ended:
+		lines.append("")
+		lines.append("📈 寒冬已过，市场回暖！")
+
 	if result.market_refreshed:
 		lines.append("")
-		lines.append("★ 岗位市场已刷新！当前：%s" % game.get_market_bias_text())
+		var downturn_note := "（寒冬期，共 %d 个岗位）" % game.current_listings.size() \
+			if game.market_downturn_weeks_left > 0 else ""
+		lines.append("★ 岗位市场已刷新！当前：%s%s" % [game.get_market_bias_text(), downturn_note])
 
 	if result.is_game_over:
 		lines.append("")

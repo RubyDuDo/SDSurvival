@@ -19,6 +19,11 @@ const LISTINGS_PER_REFRESH := 5
 const BATCH_PENALTY_2 := 0.80
 const BATCH_PENALTY_3 := 0.65
 
+# 人脉与作品集
+const MAX_NETWORKING_POINTS := 10
+const PORTFOLIO_ENERGY_COST := 3
+const MAX_PORTFOLIO_POINTS := 3
+
 # ── 公司名池 ──
 const COMPANIES: Array[String] = [
 	"赛博科技", "码农互联", "极客云", "量子前端", "深渊后端",
@@ -93,11 +98,20 @@ class JobListing:
 	var listing_id: String
 	var job: JobDef
 	var company: String
+	var actual_salary: int           # 随机化后的实际周薪（基础 ±15%，取整到10）
+	var actual_skill_required: int   # 随机化后的主技能需求（基础 ±1，最低1）
+	var actual_english_required: int
+	var actual_cpp_required: int     # APPLICATION岗位始终为0
 
-	func _init(p_listing_id: String, p_job: JobDef, p_company: String) -> void:
+	func _init(p_listing_id: String, p_job: JobDef, p_company: String,
+			p_salary: int, p_skill_req: int, p_eng_req: int, p_cpp_req: int) -> void:
 		listing_id = p_listing_id
 		job = p_job
 		company = p_company
+		actual_salary = p_salary
+		actual_skill_required = p_skill_req
+		actual_english_required = p_eng_req
+		actual_cpp_required = p_cpp_req
 
 # ── 求职申请 ──
 class JobApplication:
