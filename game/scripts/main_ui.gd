@@ -1,4 +1,4 @@
-## 主界面控制器（V2: 分区行动/通过率显示/疲劳状态/热门技能）
+## 主界面控制器（V4: 公司系统/市场风向/市场事件）
 extends Control
 
 @onready var header_label: RichTextLabel = %HeaderLabel
@@ -17,6 +17,8 @@ var game: GameState
 var _apply_selection: Dictionary = {}  # listing_id -> bool
 var _shop_mode: bool = false           # V3: 当前子菜单是否是商店
 var _replacing_tool_id: String = ""    # V3: 正在替换哪个新工具（背包满时）
+var _company_mode: bool = false        # V4: 当前子菜单是否是公司列表
+var _selected_company: GameData.CompanyDef = null  # V4: 当前选中的公司
 
 func _ready() -> void:
 	game = GameState.new()
@@ -39,8 +41,15 @@ func _refresh_ui() -> void:
 
 func _update_header() -> void:
 	var hot := game.get_hot_skill_name()
-	header_label.text = "第 %d 周 / %d 周    现金: $%s    🔥热门：%s" % [
+	var header := "第 %d 周 / %d 周    现金: $%s    🔥热门：%s" % [
 		game.week, GameData.MAX_WEEKS, _format_number(game.cash), hot]
+	var wind := game.get_wind_text()
+	if wind != "":
+		header += "    📊 风向：%s" % wind
+	var event := game.get_market_event_text()
+	if event != "":
+		header += "\n⚡ 市场事件：%s" % event
+	header_label.text = header
 
 
 func _update_status() -> void:
@@ -69,6 +78,8 @@ func _update_status() -> void:
 	var effects: Array[String] = []
 	if game.market_downturn_weeks_left > 0:
 		effects.append("📉 寒冬中（剩 %d 周）" % game.market_downturn_weeks_left)
+	if game.current_market_event != null and game.market_event_weeks_left > 0:
+		effects.append("⚡ %s（剩 %d 周）" % [game.current_market_event.name, game.market_event_weeks_left])
 	if game.fatigue_bonus_this_week > 0:
 		effects.append("💡 疲劳+%d" % game.fatigue_bonus_this_week)
 	if game.mock_interview_buff:
@@ -273,6 +284,9 @@ func _update_action_list() -> void:
 
 	# V3: 查看特质进度（不花能量）
 	_add_action_button("查看特质进度", true, _on_show_traits)
+
+	# V4: 查看公司列表
+	_add_action_button("查看公司列表", true, _on_show_companies)
 
 	_add_action_button(">>> 结束本周 <<<", true, _on_end_week)
 
@@ -619,6 +633,128 @@ func _rebuild_traits_panel() -> void:
 
 
 # ════════════════════════════════════════
+#  V4: 公司列表
+# ════════════════════════════════════════
+
+func _on_show_companies() -> void:
+	sub_menu_panel.visible = true
+	_shop_mode = false
+	_company_mode = true
+	_selected_company = null
+	_rebuild_company_panel()
+
+
+func _rebuild_company_panel() -> void:
+	for child in sub_menu_list.get_children():
+		child.queue_free()
+
+	if _selected_company != null:
+		# 公司详情视图
+		sub_menu_title.text = "公司详情 - %s" % _selected_company.name
+
+		var info_label := Label.new()
+		info_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		var scale_text := _selected_company.get_scale_text()
+		var benefit_text := _selected_company.get_benefit_text()
+		var status_text := _selected_company.get_status_text()
+		var direction := "系统/后端" if _selected_company.preferred_skill == GameData.SkillType.SYSTEM else "前端/应用"
+
+		# 统计该公司当前在市场上的岗位数
+		var listing_count := 0
+		for listing in game.current_listings:
+			if listing.company_def.id == _selected_company.id:
+				listing_count += 1
+
+		info_label.text = (
+			"公司名称：%s\n" % _selected_company.name +
+			"公司规模：%s\n" % scale_text +
+			"薪资福利：%s\n" % benefit_text +
+			"经营状况：%s\n" % status_text +
+			"主营方向：%s\n" % direction +
+			"当前在招岗位：%d 个" % listing_count
+		)
+		info_label.add_theme_font_size_override("font_size", 18)
+		info_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.85, 1))
+		sub_menu_list.add_child(info_label)
+
+		# 列出该公司当前岗位
+		if listing_count > 0:
+			var sep := HSeparator.new()
+			sep.add_theme_constant_override("separation", 8)
+			sub_menu_list.add_child(sep)
+
+			var jobs_header := Label.new()
+			jobs_header.text = "── 在招岗位 ──"
+			jobs_header.add_theme_color_override("font_color", Color(0.5, 0.7, 0.85, 1))
+			jobs_header.add_theme_font_size_override("font_size", 16)
+			sub_menu_list.add_child(jobs_header)
+
+			for listing in game.current_listings:
+				if listing.company_def.id == _selected_company.id:
+					var skill_name := "系统" if listing.job.skill_type == GameData.SkillType.SYSTEM else "应用"
+					var job_label := Label.new()
+					job_label.text = "· %s | 要求%s%d 英%d $%d/周" % [
+						listing.job.title, skill_name,
+						listing.actual_skill_required,
+						listing.actual_english_required,
+						listing.actual_salary]
+					job_label.add_theme_font_size_override("font_size", 16)
+					job_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 1))
+					sub_menu_list.add_child(job_label)
+
+		var back_btn := Button.new()
+		back_btn.text = "返回公司列表"
+		back_btn.pressed.connect(_on_back_to_company_list)
+		back_btn.add_theme_font_size_override("font_size", 16)
+		sub_menu_list.add_child(back_btn)
+	else:
+		# 公司列表视图
+		sub_menu_title.text = "公司列表（共 %d 家）" % game.companies.size()
+
+		for company in game.companies:
+			var scale_text := company.get_scale_text()
+			var status_text := company.get_status_text()
+			var benefit_text := company.get_benefit_text()
+			var direction := "系统" if company.preferred_skill == GameData.SkillType.SYSTEM else "应用"
+
+			# 统计在招岗位
+			var count := 0
+			for listing in game.current_listings:
+				if listing.company_def.id == company.id:
+					count += 1
+
+			var status_color := Color(0.6, 0.9, 0.6, 1)  # 良好=绿
+			if company.business_status == GameData.BusinessStatus.STABLE:
+				status_color = Color(0.9, 0.9, 0.5, 1)  # 维持=黄
+			elif company.business_status == GameData.BusinessStatus.STRUGGLING:
+				status_color = Color(0.9, 0.5, 0.5, 1)  # 艰难=红
+
+			var btn := Button.new()
+			btn.text = "%s  [%s]  福利:%s  经营:%s  方向:%s  在招:%d" % [
+				company.name, scale_text, benefit_text, status_text, direction, count]
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			btn.pressed.connect(_on_select_company.bind(company))
+			btn.add_theme_font_size_override("font_size", 16)
+			sub_menu_list.add_child(btn)
+
+		var close_btn := Button.new()
+		close_btn.text = "返回"
+		close_btn.pressed.connect(_on_close_sub_menu)
+		close_btn.add_theme_font_size_override("font_size", 16)
+		sub_menu_list.add_child(close_btn)
+
+
+func _on_select_company(company: GameData.CompanyDef) -> void:
+	_selected_company = company
+	_rebuild_company_panel()
+
+
+func _on_back_to_company_list() -> void:
+	_selected_company = null
+	_rebuild_company_panel()
+
+
+# ════════════════════════════════════════
 #  V2: 投递子菜单（含通过率显示）
 # ════════════════════════════════════════
 
@@ -741,6 +877,8 @@ func _on_close_sub_menu() -> void:
 	sub_menu_panel.visible = false
 	_apply_selection.clear()
 	_shop_mode = false
+	_company_mode = false
+	_selected_company = null
 	_replacing_tool_id = ""
 	_refresh_ui()
 
@@ -800,9 +938,6 @@ func _show_settlement(result: GameState.WeekSettlement) -> void:
 		lines.append("🎲 本周事件：%s" % result.event_name)
 		lines.append("   %s" % result.event_desc)
 
-	if result.market_downturn_started:
-		lines.append("")
-		lines.append("⚠ 行业寒冬来袭！岗位减少，竞争更激烈，持续 3 周。")
 	if result.market_downturn_ended:
 		lines.append("")
 		lines.append("📈 寒冬已过，市场回暖！")
@@ -813,6 +948,7 @@ func _show_settlement(result: GameState.WeekSettlement) -> void:
 			if game.market_downturn_weeks_left > 0 else ""
 		lines.append("★ 岗位市场已刷新！当前：%s%s" % [game.get_market_bias_text(), downturn_note])
 		lines.append("   🔥 本期热门技能：%s" % game.get_hot_skill_name())
+		lines.append("   📋 当前市场共 %d 个岗位" % game.current_listings.size())
 
 	if result.is_game_over:
 		lines.append("")
@@ -846,6 +982,8 @@ func _on_restart() -> void:
 	game = GameState.new()
 	_apply_selection.clear()
 	_shop_mode = false
+	_company_mode = false
+	_selected_company = null
 	_replacing_tool_id = ""
 	settlement_panel.visible = false
 	ending_panel.visible = false

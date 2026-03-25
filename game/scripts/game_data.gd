@@ -15,6 +15,11 @@ const OFFER_VALIDITY_WEEKS := 2
 const MARKET_REFRESH_WEEKS := [1, 4, 7, 10]
 const LISTINGS_PER_REFRESH := 5
 
+# V4: 市场风向周期
+const MARKET_WIND_CYCLE := 3         # 每3周可产生新风向
+const MARKET_EVENT_CHANCE := 0.25    # 每周25%概率产生市场事件
+const MARKET_EVENT_DURATION := 3     # 市场事件默认持续周数
+
 # 批量投递惩罚系数
 const BATCH_PENALTY_2 := 0.80
 const BATCH_PENALTY_3 := 0.65
@@ -64,14 +69,6 @@ const NETWORKING_APPLY_THRESHOLD := 8  # ≥8: 海投惩罚降一档
 const HOT_SKILL_XP_BONUS := 0.5
 const HOT_SKILL_COMPETITION_BONUS := 0.10
 
-# ── 公司名池 ──
-const COMPANIES: Array[String] = [
-	"赛博科技", "码农互联", "极客云", "量子前端", "深渊后端",
-	"无限循环", "栈溢出", "指针工坊", "字节飞扬", "代码农场",
-	"算法园", "二叉树科技", "哈希工业", "递归传媒", "泛型集团",
-	"接口科技", "类型擦除", "虚函数", "内存泄漏", "段错误",
-]
-
 # ── 技能枚举 ──
 enum SkillType {
 	SYSTEM,       # 系统开发（专业，系统方向）
@@ -100,6 +97,176 @@ enum ApplicationStatus {
 	OFFER,
 	REJECTED,
 }
+
+# ── V4: 公司规模 ──
+enum CompanyScale { BIG, MEDIUM, SMALL }
+
+# ── V4: 福利水平 ──
+enum BenefitLevel { HIGH, MEDIUM, NORMAL }
+
+# ── V4: 经营状况 ──
+enum BusinessStatus { GOOD, STABLE, STRUGGLING }
+
+# ── V4: 市场风向类型 ──
+enum MarketWindType { NONE, HOT, SHRINK }
+
+# ── V4: 公司定义 ──
+class CompanyDef:
+	var id: String
+	var name: String
+	var scale: CompanyScale
+	var benefit_level: BenefitLevel
+	var business_status: BusinessStatus      # 可被市场事件改变
+	var job_slots_min: int                   # 每次刷新最少参与岗位数
+	var job_slots_max: int                   # 每次刷新最多参与岗位数
+	var job_generate_chance: float           # 每个岗位位实际生成的概率
+	var job_disappear_chance: float          # 每周岗位消失的概率
+	var preferred_skill: SkillType           # 公司主营方向
+
+	func _init(p_id: String, p_name: String, p_scale: CompanyScale,
+			p_benefit: BenefitLevel, p_status: BusinessStatus,
+			p_slots_min: int, p_slots_max: int, p_gen_chance: float,
+			p_disappear: float, p_skill: SkillType) -> void:
+		id = p_id
+		name = p_name
+		scale = p_scale
+		benefit_level = p_benefit
+		business_status = p_status
+		job_slots_min = p_slots_min
+		job_slots_max = p_slots_max
+		job_generate_chance = p_gen_chance
+		job_disappear_chance = p_disappear
+		preferred_skill = p_skill
+
+	func get_salary_multiplier() -> float:
+		match benefit_level:
+			BenefitLevel.HIGH:
+				return 1.15
+			BenefitLevel.MEDIUM:
+				return 1.0
+			_:
+				return 0.90
+
+	func get_scale_text() -> String:
+		match scale:
+			CompanyScale.BIG: return "大厂"
+			CompanyScale.MEDIUM: return "中厂"
+			_: return "小厂"
+
+	func get_benefit_text() -> String:
+		match benefit_level:
+			BenefitLevel.HIGH: return "优厚"
+			BenefitLevel.MEDIUM: return "中等"
+			_: return "普通"
+
+	func get_status_text() -> String:
+		match business_status:
+			BusinessStatus.GOOD: return "良好"
+			BusinessStatus.STABLE: return "维持"
+			_: return "艰难"
+
+
+# ── V4: 所有公司 ──
+static func get_all_companies() -> Array[CompanyDef]:
+	return [
+		# 大厂 ×2
+		CompanyDef.new("bytedance", "字节飞扬", CompanyScale.BIG,
+			BenefitLevel.HIGH, BusinessStatus.GOOD,
+			1, 3, 0.50, 0.15, SkillType.APPLICATION),
+		CompanyDef.new("deepmind", "深渊后端", CompanyScale.BIG,
+			BenefitLevel.HIGH, BusinessStatus.GOOD,
+			1, 2, 0.45, 0.20, SkillType.SYSTEM),
+		# 中厂 ×3
+		CompanyDef.new("cybertech", "赛博科技", CompanyScale.MEDIUM,
+			BenefitLevel.MEDIUM, BusinessStatus.GOOD,
+			1, 2, 0.55, 0.25, SkillType.SYSTEM),
+		CompanyDef.new("geekcloud", "极客云", CompanyScale.MEDIUM,
+			BenefitLevel.MEDIUM, BusinessStatus.STABLE,
+			1, 2, 0.50, 0.20, SkillType.APPLICATION),
+		CompanyDef.new("hashworks", "哈希工业", CompanyScale.MEDIUM,
+			BenefitLevel.NORMAL, BusinessStatus.STABLE,
+			1, 3, 0.60, 0.30, SkillType.SYSTEM),
+		# 小厂 ×3
+		CompanyDef.new("stackflow", "栈溢出", CompanyScale.SMALL,
+			BenefitLevel.NORMAL, BusinessStatus.STABLE,
+			1, 2, 0.65, 0.35, SkillType.APPLICATION),
+		CompanyDef.new("recursion", "递归传媒", CompanyScale.SMALL,
+			BenefitLevel.MEDIUM, BusinessStatus.STRUGGLING,
+			0, 2, 0.40, 0.30, SkillType.APPLICATION),
+		CompanyDef.new("pointshop", "指针工坊", CompanyScale.SMALL,
+			BenefitLevel.NORMAL, BusinessStatus.STRUGGLING,
+			0, 2, 0.45, 0.40, SkillType.SYSTEM),
+	]
+
+
+# ── V4: 市场风向定义 ──
+class MarketWindDef:
+	var id: String
+	var name: String
+	var wind_type: MarketWindType      # HOT=某类岗位热门, SHRINK=某类岗位缩减
+	var target_skill: SkillType        # 影响哪个方向
+	var gen_chance_modifier: float     # 对目标方向公司的岗位生成率修正
+	var description: String
+
+	func _init(p_id: String, p_name: String, p_type: MarketWindType,
+			p_skill: SkillType, p_mod: float, p_desc: String) -> void:
+		id = p_id
+		name = p_name
+		wind_type = p_type
+		target_skill = p_skill
+		gen_chance_modifier = p_mod
+		description = p_desc
+
+
+static func get_all_market_winds() -> Array[MarketWindDef]:
+	return [
+		MarketWindDef.new("sys_hot", "后端/系统岗位需求激增", MarketWindType.HOT,
+			SkillType.SYSTEM, 0.20, "各大公司纷纷扩招后端和系统工程师"),
+		MarketWindDef.new("app_hot", "前端/应用岗位需求激增", MarketWindType.HOT,
+			SkillType.APPLICATION, 0.20, "移动端和Web应用需求旺盛"),
+		MarketWindDef.new("sys_shrink", "后端/系统岗位收缩", MarketWindType.SHRINK,
+			SkillType.SYSTEM, -0.15, "云服务成本优化，后端岗位缩减"),
+		MarketWindDef.new("app_shrink", "前端/应用岗位收缩", MarketWindType.SHRINK,
+			SkillType.APPLICATION, -0.15, "低代码平台兴起，前端需求下降"),
+	]
+
+
+# ── V4: 市场事件定义 ──
+class MarketEventDef:
+	var id: String
+	var name: String
+	var description: String
+	var duration: int                  # 持续周数
+	var effect_tag: String             # 用于game_state中判断效果
+
+	func _init(p_id: String, p_name: String, p_desc: String,
+			p_duration: int, p_tag: String) -> void:
+		id = p_id
+		name = p_name
+		description = p_desc
+		duration = p_duration
+		effect_tag = p_tag
+
+
+static func get_all_market_events() -> Array[MarketEventDef]:
+	return [
+		MarketEventDef.new("ai_shock", "AI浪潮冲击",
+			"AI大模型快速迭代，各公司裁员优化，经营状况普遍下滑",
+			3, "ai_shock"),
+		MarketEventDef.new("economy_down", "经济不景气",
+			"融资环境恶化，新增岗位大幅减少",
+			3, "economy_down"),
+		MarketEventDef.new("policy_boost", "政策利好",
+			"政府出台人才补贴政策，企业招聘意愿增强，面试通过率提升",
+			3, "policy_boost"),
+		MarketEventDef.new("funding_boom", "融资热潮",
+			"资本市场活跃，多家公司获得融资，经营状况改善",
+			2, "funding_boom"),
+		MarketEventDef.new("industry_crackdown", "行业整顿",
+			"监管部门出手整顿，部分公司暂停招聘一周",
+			1, "industry_crackdown"),
+	]
+
 
 # ── 岗位定义（模板） ──
 class JobDef:
@@ -140,17 +307,20 @@ static func get_all_jobs() -> Array[JobDef]:
 class JobListing:
 	var listing_id: String
 	var job: JobDef
-	var company: String
-	var actual_salary: int           # 随机化后的实际周薪（基础 ±15%，取整到10）
+	var company: String              # 公司显示名（兼容旧代码）
+	var company_def: CompanyDef      # V4: 所属公司定义
+	var actual_salary: int           # 随机化后的实际周薪（基础 ±15% × 福利倍率，取整到10）
 	var actual_skill_required: int   # 随机化后的主技能需求（基础 ±1，最低1）
 	var actual_english_required: int
 	var actual_cpp_required: int     # APPLICATION岗位始终为0
+	var weeks_alive: int = 0         # V4: 已存在的周数
 
-	func _init(p_listing_id: String, p_job: JobDef, p_company: String,
+	func _init(p_listing_id: String, p_job: JobDef, p_company_def: CompanyDef,
 			p_salary: int, p_skill_req: int, p_eng_req: int, p_cpp_req: int) -> void:
 		listing_id = p_listing_id
 		job = p_job
-		company = p_company
+		company_def = p_company_def
+		company = p_company_def.name
 		actual_salary = p_salary
 		actual_skill_required = p_skill_req
 		actual_english_required = p_eng_req

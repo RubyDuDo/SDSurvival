@@ -1,4 +1,4 @@
-## 游戏状态管理 - 核心逻辑（V2: 疲劳/行动细化/数值重平衡/动态市场/信息透明）
+## 游戏状态管理 - 核心逻辑（V4: 公司系统/市场风向/市场事件）
 class_name GameState
 extends RefCounted
 
@@ -40,9 +40,21 @@ var current_listings: Array[GameData.JobListing] = []
 var market_bias: GameData.MarketBias = GameData.MarketBias.BALANCED
 var hot_skill: GameData.SkillType = GameData.SkillType.SYSTEM  # V2: 热门技能
 
-# ── 市场寒冬 ──
+# ── 市场寒冬（V4: 被市场事件系统替代，保留变量供兼容查询） ──
 var market_downturn_weeks_left: int = 0
 var _downturn_triggered: bool = false
+
+# ── V4: 公司系统 ──
+var companies: Array[GameData.CompanyDef] = []
+
+# ── V4: 市场风向 ──
+var current_wind: GameData.MarketWindDef = null
+var wind_weeks_left: int = 0
+
+# ── V4: 市场事件 ──
+var current_market_event: GameData.MarketEventDef = null
+var market_event_weeks_left: int = 0
+var _original_business_status: Dictionary = {}  # company_id -> BusinessStatus（事件前备份）
 
 # ── V2: 学习疲劳（每周重置）──
 var weekly_study_count: Dictionary = {}  # SkillType -> int（本周看文档次数）
@@ -122,10 +134,25 @@ const _PORTFOLIO_BACKFIRE := [
 ]
 
 
+var _all_companies: Array[GameData.CompanyDef]
+var _all_market_winds: Array[GameData.MarketWindDef]
+var _all_market_events: Array[GameData.MarketEventDef]
+
 func _init() -> void:
 	_all_jobs = GameData.get_all_jobs()
 	_all_tools = GameData.get_all_tools()
 	_all_traits = GameData.get_all_traits()
+	_all_companies = GameData.get_all_companies()
+	_all_market_winds = GameData.get_all_market_winds()
+	_all_market_events = GameData.get_all_market_events()
+	# V4: 初始化公司列表（深拷贝，因为经营状况可变）
+	companies.clear()
+	for cdef in _all_companies:
+		var c := GameData.CompanyDef.new(cdef.id, cdef.name, cdef.scale,
+			cdef.benefit_level, cdef.business_status,
+			cdef.job_slots_min, cdef.job_slots_max, cdef.job_generate_chance,
+			cdef.job_disappear_chance, cdef.preferred_skill)
+		companies.append(c)
 	_refresh_job_market()
 
 
@@ -708,6 +735,8 @@ class WeekSettlement:
 	var market_downturn_ended: bool = false
 	var new_traits: Array[String] = []           # V3: 本周新获得的特质ID
 	var lost_traits: Array[String] = []          # V3: 本周失去的特质ID
+	var wind_started: bool = false               # V4: 是否产生了新风向
+	var market_event_started: bool = false       # V4: 是否产生了新市场事件
 
 
 func settle_week() -> WeekSettlement:
@@ -847,6 +876,10 @@ func settle_week() -> WeekSettlement:
 			comp_rate *= 0.85
 		if _is_job_hot(listing):
 			comp_rate = minf(comp_rate + GameData.HOT_SKILL_COMPETITION_BONUS, 0.95)
+		# V4: 政策利好
+		if current_market_event != null and market_event_weeks_left > 0:
+			if current_market_event.effect_tag == "policy_boost":
+				comp_rate = minf(comp_rate + 0.15, 0.95)
 		var comp_pass := randf() < comp_rate
 
 		# V3: 面霸追踪
@@ -965,12 +998,56 @@ func settle_week() -> WeekSettlement:
 	_weekly_apply_count = 0
 	shop_visited_this_week = false
 
-	# 11. 检查市场刷新
+	# 11. V4: 岗位消失（每周，未投递的岗位按公司概率消失）
+	var disappeared_listings: Array[String] = []
+	var surviving_listings: Array[GameData.JobListing] = []
+	for listing in current_listings:
+		listing.weeks_alive += 1
+		# 已投递的岗位不会消失
+		if applications.has(listing.listing_id):
+			surviving_listings.append(listing)
+			continue
+		var disappear_chance := listing.company_def.job_disappear_chance
+		# 经营艰难的公司岗位消失率额外+10%
+		if listing.company_def.business_status == GameData.BusinessStatus.STRUGGLING:
+			disappear_chance += 0.10
+		if randf() < disappear_chance:
+			disappeared_listings.append("%s [%s]" % [listing.job.title, listing.company])
+		else:
+			surviving_listings.append(listing)
+	current_listings = surviving_listings
+	if disappeared_listings.size() > 0:
+		result.notifications.append("📋 岗位被其他候选人抢走：%s" % "、".join(disappeared_listings))
+
+	# 12. V4: 市场风向倒计时
+	if wind_weeks_left > 0:
+		wind_weeks_left -= 1
+		if wind_weeks_left == 0:
+			result.notifications.append("📊 市场风向「%s」已结束" % current_wind.name)
+			current_wind = null
+
+	# 13. V4: 市场事件倒计时
+	if market_event_weeks_left > 0:
+		market_event_weeks_left -= 1
+		if market_event_weeks_left == 0:
+			_end_market_event(result)
+
+	# 14. V4: 每3周判定新风向
+	if week > 1 and (week - 1) % GameData.MARKET_WIND_CYCLE == 0 and wind_weeks_left == 0:
+		_roll_market_wind(result)
+
+	# 15. V4: 每周判定市场事件
+	if market_event_weeks_left == 0 and randf() < GameData.MARKET_EVENT_CHANCE:
+		_roll_market_event(result)
+
+	# 16. 寒冬倒计时（兼容：由AI冲击/经济不景气事件驱动）
+	if market_downturn_weeks_left > 0:
+		market_downturn_weeks_left -= 1
+		if market_downturn_weeks_left == 0:
+			result.market_downturn_ended = true
+
+	# 17. 检查市场刷新（每3周刷新一次新岗位）
 	if week in GameData.MARKET_REFRESH_WEEKS and week != 1:
-		if week == 7 and not _downturn_triggered and randf() < 0.30:
-			market_downturn_weeks_left = 3
-			_downturn_triggered = true
-			result.market_downturn_started = true
 		_refresh_job_market()
 		result.market_refreshed = true
 		result.new_market_bias = market_bias
@@ -1150,6 +1227,89 @@ func _pick_referral_listing() -> GameData.JobListing:
 
 
 # ════════════════════════════════════════
+#  V4: 市场风向与市场事件
+# ════════════════════════════════════════
+
+## 随机产生市场风向（50%概率产生，50%概率无风向）
+func _roll_market_wind(result: WeekSettlement) -> void:
+	if randf() < 0.50:
+		return  # 无风向，一切均衡
+	var wind: GameData.MarketWindDef = _all_market_winds[randi() % _all_market_winds.size()]
+	current_wind = wind
+	wind_weeks_left = GameData.MARKET_WIND_CYCLE
+	result.notifications.append("📊 市场风向：%s（持续%d周）" % [wind.name, wind_weeks_left])
+
+
+## 随机产生市场事件
+func _roll_market_event(result: WeekSettlement) -> void:
+	var event: GameData.MarketEventDef = _all_market_events[randi() % _all_market_events.size()]
+	current_market_event = event
+	market_event_weeks_left = event.duration
+	result.notifications.append("⚡ 市场事件：%s（持续%d周）" % [event.name, event.duration])
+	result.notifications.append("   %s" % event.description)
+	# 应用事件效果
+	_apply_market_event(event)
+
+
+## 应用市场事件的即时效果
+func _apply_market_event(event: GameData.MarketEventDef) -> void:
+	match event.effect_tag:
+		"ai_shock":
+			# AI冲击：所有公司经营状况下降一档，设置寒冬
+			_original_business_status.clear()
+			for c in companies:
+				_original_business_status[c.id] = c.business_status
+				match c.business_status:
+					GameData.BusinessStatus.GOOD:
+						c.business_status = GameData.BusinessStatus.STABLE
+					GameData.BusinessStatus.STABLE:
+						c.business_status = GameData.BusinessStatus.STRUGGLING
+			market_downturn_weeks_left = event.duration
+		"economy_down":
+			# 经济不景气：寒冬效果（收入减少等）
+			market_downturn_weeks_left = event.duration
+		"policy_boost":
+			# 政策利好：效果在面试计算中检查 market_event
+			pass
+		"funding_boom":
+			# 融资热潮：部分公司经营状况上升一档
+			_original_business_status.clear()
+			for c in companies:
+				_original_business_status[c.id] = c.business_status
+				if c.scale != GameData.CompanyScale.BIG and randf() < 0.60:
+					match c.business_status:
+						GameData.BusinessStatus.STRUGGLING:
+							c.business_status = GameData.BusinessStatus.STABLE
+						GameData.BusinessStatus.STABLE:
+							c.business_status = GameData.BusinessStatus.GOOD
+		"industry_crackdown":
+			# 行业整顿：效果在岗位生成时检查
+			pass
+
+
+## 市场事件结束，恢复效果
+func _end_market_event(result: WeekSettlement) -> void:
+	if current_market_event == null:
+		return
+	result.notifications.append("📰 市场事件「%s」已结束" % current_market_event.name)
+	# 恢复经营状况
+	if current_market_event.effect_tag in ["ai_shock", "funding_boom"]:
+		for c in companies:
+			if _original_business_status.has(c.id):
+				c.business_status = _original_business_status[c.id] as GameData.BusinessStatus
+		_original_business_status.clear()
+	current_market_event = null
+
+
+## V4: 查找公司定义
+func find_company(company_id: String) -> GameData.CompanyDef:
+	for c in companies:
+		if c.id == company_id:
+			return c
+	return null
+
+
+# ════════════════════════════════════════
 #  V3: 特质检查与授予
 # ════════════════════════════════════════
 
@@ -1275,8 +1435,21 @@ func get_ending_text(ending: Ending) -> Dictionary:
 # ════════════════════════════════════════
 
 func _refresh_job_market() -> void:
-	var bias_roll := randi() % 3
-	market_bias = bias_roll as GameData.MarketBias
+	# V4: 市场偏向由风向决定
+	if current_wind != null and wind_weeks_left > 0:
+		if current_wind.wind_type == GameData.MarketWindType.HOT:
+			if current_wind.target_skill == GameData.SkillType.SYSTEM:
+				market_bias = GameData.MarketBias.SYSTEM_HEAVY
+			else:
+				market_bias = GameData.MarketBias.APP_HEAVY
+		elif current_wind.wind_type == GameData.MarketWindType.SHRINK:
+			if current_wind.target_skill == GameData.SkillType.SYSTEM:
+				market_bias = GameData.MarketBias.APP_HEAVY
+			else:
+				market_bias = GameData.MarketBias.SYSTEM_HEAVY
+	else:
+		var bias_roll := randi() % 3
+		market_bias = bias_roll as GameData.MarketBias
 
 	# V2: 随机热门技能
 	var all_skills := [
@@ -1286,23 +1459,17 @@ func _refresh_job_market() -> void:
 	]
 	hot_skill = all_skills[randi() % all_skills.size()]
 
-	var total_listings := GameData.LISTINGS_PER_REFRESH
-	if market_downturn_weeks_left > 0:
-		total_listings = 3
+	# V4: 清除未投递的旧岗位，然后各公司生成新岗位
+	var kept: Array[GameData.JobListing] = []
+	for listing in current_listings:
+		if applications.has(listing.listing_id):
+			kept.append(listing)
+	current_listings = kept
+	_generate_company_listings()
 
-	var system_count := 0
-	var app_count := 0
-	match market_bias:
-		GameData.MarketBias.SYSTEM_HEAVY:
-			system_count = mini(3, total_listings - 1)
-			app_count = total_listings - system_count
-		GameData.MarketBias.APP_HEAVY:
-			app_count = mini(3, total_listings - 1)
-			system_count = total_listings - app_count
-		_:
-			system_count = total_listings / 2
-			app_count = total_listings - system_count
 
+## V4: 每家公司根据自身参数生成岗位
+func _generate_company_listings() -> void:
 	var system_jobs: Array[GameData.JobDef] = []
 	var app_jobs: Array[GameData.JobDef] = []
 	for job in _all_jobs:
@@ -1311,28 +1478,64 @@ func _refresh_job_market() -> void:
 		elif job.skill_type == GameData.SkillType.APPLICATION:
 			app_jobs.append(job)
 
-	current_listings.clear()
-	_generate_listings(system_jobs, system_count)
-	_generate_listings(app_jobs, app_count)
-
-
-func _generate_listings(job_pool: Array[GameData.JobDef], count: int) -> void:
 	var weights := [50, 35, 15]
-	for _i in range(count):
-		var job := _weighted_pick(job_pool, weights)
-		var company := GameData.COMPANIES[randi() % GameData.COMPANIES.size()]
-		_listing_counter += 1
-		var listing_id := "%s_%d" % [job.id, _listing_counter]
 
-		var actual_salary := roundi(job.weekly_salary * randf_range(0.85, 1.15) / 10.0) * 10
-		var actual_skill_req: int = maxi(1, job.skill_required + (randi() % 3) - 1)
-		var actual_eng_req: int  = maxi(1, job.english_required + (randi() % 3) - 1)
-		var actual_cpp_req := 0
-		if job.cpp_required > 0:
-			actual_cpp_req = maxi(1, job.cpp_required + (randi() % 3) - 1)
+	for company in companies:
+		# 行业整顿事件：暂停招聘
+		if current_market_event != null and market_event_weeks_left > 0:
+			if current_market_event.effect_tag == "industry_crackdown":
+				continue
 
-		current_listings.append(GameData.JobListing.new(
-			listing_id, job, company, actual_salary, actual_skill_req, actual_eng_req, actual_cpp_req))
+		# 决定本次参与的岗位数量
+		var slots := company.job_slots_min + (randi() % (company.job_slots_max - company.job_slots_min + 1))
+
+		# 计算实际生成概率（基准 + 风向修正 + 事件修正）
+		var gen_chance := company.job_generate_chance
+		# 风向影响：目标方向公司
+		if current_wind != null and wind_weeks_left > 0:
+			if company.preferred_skill == current_wind.target_skill:
+				gen_chance += current_wind.gen_chance_modifier
+		# 经济不景气事件：生成率-20%
+		if current_market_event != null and market_event_weeks_left > 0:
+			if current_market_event.effect_tag == "economy_down":
+				gen_chance -= 0.20
+		# 经营状况影响
+		match company.business_status:
+			GameData.BusinessStatus.STRUGGLING:
+				gen_chance -= 0.10
+			GameData.BusinessStatus.GOOD:
+				gen_chance += 0.05
+		gen_chance = clampf(gen_chance, 0.05, 0.95)
+
+		# 选择对应方向的岗位池
+		var job_pool: Array[GameData.JobDef]
+		if company.preferred_skill == GameData.SkillType.SYSTEM:
+			job_pool = system_jobs
+		else:
+			job_pool = app_jobs
+
+		for _i in range(slots):
+			if randf() < gen_chance:
+				_create_listing_for_company(company, job_pool, weights)
+
+
+## V4: 为指定公司创建一个岗位
+func _create_listing_for_company(company: GameData.CompanyDef,
+		job_pool: Array[GameData.JobDef], weights: Array) -> void:
+	var job := _weighted_pick(job_pool, weights)
+	_listing_counter += 1
+	var listing_id := "%s_%s_%d" % [company.id, job.id, _listing_counter]
+
+	var salary_mult := company.get_salary_multiplier()
+	var actual_salary := roundi(job.weekly_salary * salary_mult * randf_range(0.85, 1.15) / 10.0) * 10
+	var actual_skill_req: int = maxi(1, job.skill_required + (randi() % 3) - 1)
+	var actual_eng_req: int  = maxi(1, job.english_required + (randi() % 3) - 1)
+	var actual_cpp_req := 0
+	if job.cpp_required > 0:
+		actual_cpp_req = maxi(1, job.cpp_required + (randi() % 3) - 1)
+
+	current_listings.append(GameData.JobListing.new(
+		listing_id, job, company, actual_salary, actual_skill_req, actual_eng_req, actual_cpp_req))
 
 
 func _weighted_pick(pool: Array[GameData.JobDef], weights: Array) -> GameData.JobDef:
@@ -1455,6 +1658,10 @@ func calc_interview_pass_rate(listing: GameData.JobListing) -> Dictionary:
 		comp_rate *= 0.85
 	if _is_job_hot(listing):
 		comp_rate = minf(comp_rate + GameData.HOT_SKILL_COMPETITION_BONUS, 0.95)
+	# V4: 政策利好提升面试通过率
+	if current_market_event != null and market_event_weeks_left > 0:
+		if current_market_event.effect_tag == "policy_boost":
+			comp_rate = minf(comp_rate + 0.15, 0.95)
 
 	return {"vibe": vibe_rate, "competition": comp_rate, "total": vibe_rate * comp_rate}
 
@@ -1490,6 +1697,18 @@ func _find_listing(listing_id: String) -> GameData.JobListing:
 		return (applications[listing_id] as GameData.JobApplication).listing
 	return null
 
+
+## V4: 获取当前市场事件名（供UI显示）
+func get_market_event_text() -> String:
+	if current_market_event != null and market_event_weeks_left > 0:
+		return "%s（剩%d周）" % [current_market_event.name, market_event_weeks_left]
+	return ""
+
+## V4: 获取当前风向名（供UI显示）
+func get_wind_text() -> String:
+	if current_wind != null and wind_weeks_left > 0:
+		return "%s（剩%d周）" % [current_wind.name, wind_weeks_left]
+	return ""
 
 func get_market_bias_text() -> String:
 	match market_bias:
