@@ -9,6 +9,7 @@ extends RefCounted
 var week: int = 1
 var cash: int = GameData.INITIAL_CASH
 var energy: int = GameData.ENERGY_PER_WEEK
+var week_start_energy: int = GameData.ENERGY_PER_WEEK  # 本周初始AP，用于UI显示
 
 # 专业技能 (5个)
 var skills: Dictionary = {
@@ -201,7 +202,7 @@ func get_skill_xp_progress(skill_type: GameData.SkillType) -> String:
 func get_general_skill_xp_progress(is_communication: bool) -> String:
 	var lv: int = communication if is_communication else interview_skill
 	var xp: float = communication_xp if is_communication else interview_skill_xp
-	if lv >= GameData.MAX_SKILL_LEVEL:
+	if lv >= GameData.MAX_GENERAL_SKILL_LEVEL:
 		return "MAX"
 	var needed: int = GameData.xp_needed_for_level(lv + 1)
 	if absf(xp - roundf(xp)) < 0.01:
@@ -235,25 +236,25 @@ func _add_general_skill_xp(is_communication: bool, amount: float) -> void:
 		return
 	if is_communication:
 		communication_xp += amount
-		while communication < GameData.MAX_SKILL_LEVEL:
+		while communication < GameData.MAX_GENERAL_SKILL_LEVEL:
 			var needed := float(GameData.xp_needed_for_level(communication + 1))
 			if communication_xp >= needed:
 				communication_xp -= needed
 				communication += 1
 			else:
 				break
-		if communication >= GameData.MAX_SKILL_LEVEL:
+		if communication >= GameData.MAX_GENERAL_SKILL_LEVEL:
 			communication_xp = 0.0
 	else:
 		interview_skill_xp += amount
-		while interview_skill < GameData.MAX_SKILL_LEVEL:
+		while interview_skill < GameData.MAX_GENERAL_SKILL_LEVEL:
 			var needed := float(GameData.xp_needed_for_level(interview_skill + 1))
 			if interview_skill_xp >= needed:
 				interview_skill_xp -= needed
 				interview_skill += 1
 			else:
 				break
-		if interview_skill >= GameData.MAX_SKILL_LEVEL:
+		if interview_skill >= GameData.MAX_GENERAL_SKILL_LEVEL:
 			interview_skill_xp = 0.0
 
 
@@ -349,7 +350,7 @@ func action_study_skill(skill_type: GameData.SkillType) -> bool:
 
 ## 学习沟通 (1EP)
 func action_study_communication() -> bool:
-	if communication >= GameData.MAX_SKILL_LEVEL:
+	if communication >= GameData.MAX_GENERAL_SKILL_LEVEL:
 		return false
 	if get_free_energy() < 1:
 		return false
@@ -370,7 +371,7 @@ func action_study_communication() -> bool:
 
 ## 学习面试技巧 (1EP)
 func action_study_interview() -> bool:
-	if interview_skill >= GameData.MAX_SKILL_LEVEL:
+	if interview_skill >= GameData.MAX_GENERAL_SKILL_LEVEL:
 		return false
 	if get_free_energy() < 1:
 		return false
@@ -864,6 +865,7 @@ func settle_week() -> WeekSettlement:
 	# 14. 推进到下一周
 	week += 1
 	energy = maxi(1, GameData.ENERGY_PER_WEEK + _energy_modifier_next_week)
+	week_start_energy = energy
 	_energy_modifier_next_week = 0
 	fatigue_bonus_this_week = _fatigue_bonus_next_week
 	_fatigue_bonus_next_week = 0
@@ -916,8 +918,7 @@ func _process_resume_results(result: WeekSettlement) -> void:
 			stats_total_rejections += 1
 			var msg: String = _RESUME_UNDERQUALIFIED[randi() % _RESUME_UNDERQUALIFIED.size()]
 			var formatted := msg % listing.company_def.name if "%s" in msg else msg
-			result.notifications.append("❌ %s（通过率%.0f%%）：%s" % [
-				title, pass_rate * 100, formatted])
+			result.notifications.append("❌ %s：%s" % [title, formatted])
 
 
 func _process_interview_results(result: WeekSettlement) -> void:
@@ -957,8 +958,7 @@ func _process_interview_results(result: WeekSettlement) -> void:
 			app.status = GameData.ApplicationStatus.REJECTED
 			stats_total_rejections += 1
 			var msg: String = _INTERVIEW_FAIL[randi() % _INTERVIEW_FAIL.size()]
-			result.notifications.append("❌ %s（面试%.0f%%未通过）：%s" % [
-				title, pass_rate * 100, msg])
+			result.notifications.append("❌ %s 面试未通过：%s" % [title, msg])
 
 
 func _check_referral(result: WeekSettlement) -> void:
@@ -1033,8 +1033,7 @@ func _process_job_disappearance(result: WeekSettlement) -> void:
 		else:
 			surviving.append(listing)
 	current_listings = surviving
-	if disappeared.size() > 0:
-		result.notifications.append("📋 岗位被抢走：%s" % "、".join(disappeared))
+	# 岗位下架不再通知
 
 
 # ══════════════════════════════════════════

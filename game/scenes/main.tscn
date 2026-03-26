@@ -18,83 +18,150 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.08, 0.08, 0.12, 1)
+color = Color(0.039, 0.055, 0.102, 1)
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="MainLayout" type="MarginContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 20
+theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 20
+theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 10
 
-[node name="MainVBox" type="VBoxContainer" parent="MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HeaderBar" type="PanelContainer" parent="MainLayout/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 
-[node name="HeaderLabel" type="RichTextLabel" parent="MarginContainer/MainVBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+[node name="HeaderMargin" type="MarginContainer" parent="MainLayout/VBox/HeaderBar"]
 layout_mode = 2
-theme_override_colors/default_color = Color(0.9, 0.85, 0.5, 1)
-theme_override_font_sizes/normal_font_size = 20
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 4
+
+[node name="HeaderHBox" type="HBoxContainer" parent="MainLayout/VBox/HeaderBar/HeaderMargin"]
+layout_mode = 2
+
+[node name="WeekLabel" type="RichTextLabel" parent="MainLayout/VBox/HeaderBar/HeaderMargin/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_colors/default_color = Color(0.973, 0.98, 0.988, 1)
+theme_override_font_sizes/normal_font_size = 18
 bbcode_enabled = true
-text = "第 1 周 / 12 周    现金: $3,000"
 fit_content = true
+scroll_active = false
 
-[node name="HSeparator1" type="HSeparator" parent="MarginContainer/MainVBox"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="ContentHBox" type="HBoxContainer" parent="MarginContainer/MainVBox"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 16
-
-[node name="LeftPanel" type="VBoxContainer" parent="MarginContainer/MainVBox/ContentHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="ActionTitle" type="Label" parent="MarginContainer/MainVBox/ContentHBox/LeftPanel"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.8, 0.9, 1)
-theme_override_font_sizes/font_size = 17
-text = "本周行动："
-
-[node name="ActionScroll" type="ScrollContainer" parent="MarginContainer/MainVBox/ContentHBox/LeftPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="ActionList" type="VBoxContainer" parent="MarginContainer/MainVBox/ContentHBox/LeftPanel/ActionScroll"]
+[node name="WeekBar" type="RichTextLabel" parent="MainLayout/VBox/HeaderBar/HeaderMargin/HeaderHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
-[node name="VSeparator" type="VSeparator" parent="MarginContainer/MainVBox/ContentHBox"]
-layout_mode = 2
-theme_override_constants/separation = 2
-
-[node name="RightPanel" type="VBoxContainer" parent="MarginContainer/MainVBox/ContentHBox"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="InfoScroll" type="ScrollContainer" parent="MarginContainer/MainVBox/ContentHBox/RightPanel"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="InfoLabel" type="RichTextLabel" parent="MarginContainer/MainVBox/ContentHBox/RightPanel/InfoScroll"]
+[node name="StatusLabel" type="RichTextLabel" parent="MainLayout/VBox/HeaderBar/HeaderMargin/HeaderHBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 0)
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_colors/default_color = Color(0.85, 0.85, 0.85, 1)
+size_flags_horizontal = 0
+theme_override_colors/default_color = Color(0.973, 0.98, 0.988, 1)
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
 fit_content = true
+scroll_active = false
+
+[node name="CompanyButton" type="Button" parent="MainLayout/VBox/HeaderBar/HeaderMargin/HeaderHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+text = "公司列表"
+
+[node name="ContentHBox" type="HBoxContainer" parent="MainLayout/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="LeftPanel" type="PanelContainer" parent="MainLayout/VBox/ContentHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LeftMargin" type="MarginContainer" parent="MainLayout/VBox/ContentHBox/LeftPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="LeftVBox" type="VBoxContainer" parent="MainLayout/VBox/ContentHBox/LeftPanel/LeftMargin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ActionTitle" type="RichTextLabel" parent="MainLayout/VBox/ContentHBox/LeftPanel/LeftMargin/LeftVBox"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.376, 0.647, 0.98, 1)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "[b]行动[/b]"
+fit_content = true
+scroll_active = false
+
+[node name="ActionScroll" type="ScrollContainer" parent="MainLayout/VBox/ContentHBox/LeftPanel/LeftMargin/LeftVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ActionList" type="VBoxContainer" parent="MainLayout/VBox/ContentHBox/LeftPanel/LeftMargin/LeftVBox/ActionScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 3
+
+[node name="RightPanel" type="PanelContainer" parent="MainLayout/VBox/ContentHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightMargin" type="MarginContainer" parent="MainLayout/VBox/ContentHBox/RightPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="InfoScroll" type="ScrollContainer" parent="MainLayout/VBox/ContentHBox/RightPanel/RightMargin"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InfoVBox" type="VBoxContainer" parent="MainLayout/VBox/ContentHBox/RightPanel/RightMargin/InfoScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="EventBar" type="RichTextLabel" parent="MainLayout/VBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 14
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
 [node name="SettlementPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -113,40 +180,51 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.1, 0.95)
+color = Color(0.02, 0.027, 0.059, 0.95)
 
-[node name="SettlementMargin" type="MarginContainer" parent="SettlementPanel"]
+[node name="SettlementCenter" type="CenterContainer" parent="SettlementPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 80
-theme_override_constants/margin_top = 60
-theme_override_constants/margin_right = 80
-theme_override_constants/margin_bottom = 60
 
-[node name="VBox" type="VBoxContainer" parent="SettlementPanel/SettlementMargin"]
-layout_mode = 2
-
-[node name="SettlementLabel" type="RichTextLabel" parent="SettlementPanel/SettlementMargin/VBox"]
+[node name="SettlementCard" type="PanelContainer" parent="SettlementPanel/SettlementCenter"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(700, 0)
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/default_color = Color(0.9, 0.9, 0.9, 1)
-theme_override_font_sizes/normal_font_size = 18
+
+[node name="SettlementMargin" type="MarginContainer" parent="SettlementPanel/SettlementCenter/SettlementCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 28
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 28
+
+[node name="VBox" type="VBoxContainer" parent="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SettlementLabel" type="RichTextLabel" parent="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.886, 0.906, 0.925, 1)
+theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
-[node name="SettlementOfferBox" type="VBoxContainer" parent="SettlementPanel/SettlementMargin/VBox"]
+[node name="SettlementOfferBox" type="VBoxContainer" parent="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="ContinueButton" type="Button" parent="SettlementPanel/SettlementMargin/VBox"]
-custom_minimum_size = Vector2(0, 45)
+[node name="ContinueButton" type="Button" parent="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin/VBox"]
+custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "继续"
+text = "继 续"
 
 [node name="EndingPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -165,36 +243,45 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.02, 0.05, 0.98)
+color = Color(0.02, 0.027, 0.039, 0.98)
 
-[node name="EndingMargin" type="MarginContainer" parent="EndingPanel"]
+[node name="EndingCenter" type="CenterContainer" parent="EndingPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 80
-theme_override_constants/margin_top = 80
-theme_override_constants/margin_right = 80
-theme_override_constants/margin_bottom = 80
 
-[node name="VBox" type="VBoxContainer" parent="EndingPanel/EndingMargin"]
-layout_mode = 2
-alignment = 1
-
-[node name="EndingLabel" type="RichTextLabel" parent="EndingPanel/EndingMargin/VBox"]
+[node name="EndingCard" type="PanelContainer" parent="EndingPanel/EndingCenter"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(750, 0)
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_colors/default_color = Color(0.95, 0.9, 0.5, 1)
-theme_override_font_sizes/normal_font_size = 24
-bbcode_enabled = true
 
-[node name="RestartButton" type="Button" parent="EndingPanel/EndingMargin/VBox"]
-custom_minimum_size = Vector2(0, 45)
+[node name="EndingMargin" type="MarginContainer" parent="EndingPanel/EndingCenter/EndingCard"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 36
+
+[node name="VBox" type="VBoxContainer" parent="EndingPanel/EndingCenter/EndingCard/EndingMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EndingLabel" type="RichTextLabel" parent="EndingPanel/EndingCenter/EndingCard/EndingMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.886, 0.906, 0.925, 1)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="RestartButton" type="Button" parent="EndingPanel/EndingCenter/EndingCard/EndingMargin/VBox"]
+custom_minimum_size = Vector2(0, 46)
+layout_mode = 2
 text = "再来一局"
 
 [node name="SubMenuPanel" type="Panel" parent="."]
@@ -214,39 +301,53 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.1, 0.95)
+color = Color(0.02, 0.027, 0.059, 0.92)
 
-[node name="SubMenuMargin" type="MarginContainer" parent="SubMenuPanel"]
+[node name="SubMenuCenter" type="CenterContainer" parent="SubMenuPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 60
-theme_override_constants/margin_top = 40
-theme_override_constants/margin_right = 60
-theme_override_constants/margin_bottom = 40
 
-[node name="VBox" type="VBoxContainer" parent="SubMenuPanel/SubMenuMargin"]
-layout_mode = 2
-
-[node name="SubMenuTitle" type="Label" parent="SubMenuPanel/SubMenuMargin/VBox"]
+[node name="SubMenuCard" type="PanelContainer" parent="SubMenuPanel/SubMenuCenter"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(800, 500)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.85, 0.5, 1)
-theme_override_font_sizes/font_size = 20
-text = "选择："
 
-[node name="ScrollContainer" type="ScrollContainer" parent="SubMenuPanel/SubMenuMargin/VBox"]
+[node name="SubMenuMargin" type="MarginContainer" parent="SubMenuPanel/SubMenuCenter/SubMenuCard"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="SubMenuPanel/SubMenuCenter/SubMenuCard/SubMenuMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="SubMenuTitle" type="RichTextLabel" parent="SubMenuPanel/SubMenuCenter/SubMenuCard/SubMenuMargin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.376, 0.647, 0.98, 1)
+theme_override_font_sizes/normal_font_size = 20
+bbcode_enabled = true
+text = "[b]选择[/b]"
+fit_content = true
+scroll_active = false
+
+[node name="ScrollContainer" type="ScrollContainer" parent="SubMenuPanel/SubMenuCenter/SubMenuCard/SubMenuMargin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="SubMenuList" type="VBoxContainer" parent="SubMenuPanel/SubMenuMargin/VBox/ScrollContainer"]
+[node name="SubMenuList" type="VBoxContainer" parent="SubMenuPanel/SubMenuCenter/SubMenuCard/SubMenuMargin/VBox/ScrollContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+theme_override_constants/separation = 4
 
 [node name="SkillSelectPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -264,47 +365,85 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.06, 0.06, 0.1, 0.98)
+color = Color(0.039, 0.055, 0.102, 1)
 
-[node name="SkillSelectMargin" type="MarginContainer" parent="SkillSelectPanel"]
+[node name="SkillSelectCenter" type="CenterContainer" parent="SkillSelectPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 120
-theme_override_constants/margin_top = 100
-theme_override_constants/margin_right = 120
-theme_override_constants/margin_bottom = 100
 
-[node name="VBox" type="VBoxContainer" parent="SkillSelectPanel/SkillSelectMargin"]
+[node name="SkillSelectVBox" type="VBoxContainer" parent="SkillSelectPanel/SkillSelectCenter"]
 layout_mode = 2
-theme_override_constants/separation = 12
-alignment = 1
+theme_override_constants/separation = 20
 
-[node name="Title" type="Label" parent="SkillSelectPanel/SkillSelectMargin/VBox"]
+[node name="Title" type="Label" parent="SkillSelectPanel/SkillSelectCenter/SkillSelectVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.9, 0.5, 1)
+theme_override_colors/font_color = Color(0.376, 0.647, 0.98, 1)
 theme_override_font_sizes/font_size = 28
 text = "选择你的起始专业技能"
 horizontal_alignment = 1
 
-[node name="Desc" type="Label" parent="SkillSelectPanel/SkillSelectMargin/VBox"]
+[node name="Desc" type="Label" parent="SkillSelectPanel/SkillSelectCenter/SkillSelectVBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.58, 0.639, 0.722, 1)
+theme_override_font_sizes/font_size = 15
 text = "该技能将从 Lv.3 开始，可以直接投递初级岗位"
 horizontal_alignment = 1
 
-[node name="Spacer" type="Control" parent="SkillSelectPanel/SkillSelectMargin/VBox"]
-custom_minimum_size = Vector2(0, 20)
-layout_mode = 2
-
-[node name="SkillButtons" type="VBoxContainer" parent="SkillSelectPanel/SkillSelectMargin/VBox"]
+[node name="SkillButtons" type="HBoxContainer" parent="SkillSelectPanel/SkillSelectCenter/SkillSelectVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 12
 
-[connection signal="pressed" from="SettlementPanel/SettlementMargin/VBox/ContinueButton" to="." method="_on_settlement_continue"]
-[connection signal="pressed" from="EndingPanel/EndingMargin/VBox/RestartButton" to="." method="_on_restart"]
+[node name="IntroPanel" type="Panel" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="IntroBG" type="ColorRect" parent="IntroPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.039, 0.055, 0.102, 1)
+
+[node name="IntroCenter" type="CenterContainer" parent="IntroPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="IntroVBox" type="VBoxContainer" parent="IntroPanel/IntroCenter"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="IntroLabel" type="RichTextLabel" parent="IntroPanel/IntroCenter/IntroVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(600, 200)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.886, 0.906, 0.925, 1)
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="IntroHint" type="Label" parent="IntroPanel/IntroCenter/IntroVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.639, 0.722, 0.6)
+theme_override_font_sizes/font_size = 14
+text = "点击任意处继续..."
+horizontal_alignment = 1
+
+[connection signal="pressed" from="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin/VBox/ContinueButton" to="." method="_on_settlement_continue"]
+[connection signal="pressed" from="EndingPanel/EndingCenter/EndingCard/EndingMargin/VBox/RestartButton" to="." method="_on_restart"]

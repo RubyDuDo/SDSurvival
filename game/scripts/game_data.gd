@@ -10,6 +10,7 @@ const INITIAL_CASH := 3500
 const WEEKLY_LIVING_COST := 500
 const ENERGY_PER_WEEK := 7
 const MAX_SKILL_LEVEL := 10
+const MAX_GENERAL_SKILL_LEVEL := 4   # 沟通/面试技巧上限
 const OFFER_VALIDITY_WEEKS := 3
 
 # 零工
