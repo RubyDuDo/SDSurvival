@@ -13,6 +13,7 @@ extends Control
 @onready var sub_menu_title: Label = %SubMenuTitle
 @onready var skill_select_panel: Panel = %SkillSelectPanel
 @onready var skill_buttons: VBoxContainer = %SkillButtons
+@onready var settlement_offer_box: VBoxContainer = %SettlementOfferBox
 
 var game: GameState
 var _shop_mode: bool = false
@@ -38,7 +39,8 @@ func _setup_skill_select() -> void:
 		child.queue_free()
 	for skill_type in GameData.get_all_skill_types():
 		var btn := Button.new()
-		btn.text = GameData.get_skill_name(skill_type)
+		var bonus_desc := GameData.get_skill_bonus_description(skill_type)
+		btn.text = "%s — %s" % [GameData.get_skill_name(skill_type), bonus_desc]
 		btn.custom_minimum_size = Vector2(0, 45)
 		btn.add_theme_font_size_override("font_size", 20)
 		btn.pressed.connect(_on_skill_selected.bind(skill_type))
@@ -246,9 +248,10 @@ func _update_action_list() -> void:
 			has_interview = true
 			var title := app.listing.get_display_title()
 			var rate := game.calc_interview_pass_rate(app.listing)
+			var iv_cost := game.get_interview_cost()
 			_add_action_button(
-				"参加面试：%s（-2AP, 预估%.0f%%）" % [title, rate * 100],
-				_on_interview.bind(lid), free_energy >= 2)
+				"参加面试：%s（-%dAP, 预估%.0f%%）" % [title, iv_cost, rate * 100],
+				_on_interview.bind(lid), free_energy >= iv_cost)
 
 	if not game.resume_faked:
 		_add_action_button("包装简历（-2AP, 技能+1但面试有30%翻车风险）",
@@ -680,6 +683,7 @@ func _show_settlement(result: GameState.WeekSettlement) -> void:
 		lines.append("   %s" % result.event_desc)
 
 	settlement_label.text = "\n".join(lines)
+	_populate_settlement_offers()
 	settlement_panel.visible = true
 
 
@@ -691,6 +695,26 @@ func _on_settlement_continue() -> void:
 		_show_ending()
 	else:
 		_refresh_ui()
+
+
+func _populate_settlement_offers() -> void:
+	for child in settlement_offer_box.get_children():
+		child.queue_free()
+	for lid in game.applications:
+		var app: GameData.JobApplication = game.applications[lid]
+		if app.status == GameData.ApplicationStatus.OFFER:
+			var title := app.listing.get_display_title()
+			var btn := Button.new()
+			btn.text = "📩 接受Offer：%s（$%s/周）" % [title, _format_number(app.listing.actual_salary)]
+			btn.custom_minimum_size = Vector2(0, 40)
+			btn.pressed.connect(_on_settlement_accept_offer.bind(lid))
+			settlement_offer_box.add_child(btn)
+
+
+func _on_settlement_accept_offer(listing_id: String) -> void:
+	game.action_accept_offer(listing_id)
+	# 刷新结算面板的offer按钮（接受后移除）
+	_populate_settlement_offers()
 
 
 func _show_ending() -> void:

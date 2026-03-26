@@ -6,11 +6,11 @@ class_name GameData
 # ══════════════════════════════════════════
 
 const MAX_WEEKS := 12
-const INITIAL_CASH := 3000
+const INITIAL_CASH := 3500
 const WEEKLY_LIVING_COST := 500
 const ENERGY_PER_WEEK := 7
 const MAX_SKILL_LEVEL := 10
-const OFFER_VALIDITY_WEEKS := 2
+const OFFER_VALIDITY_WEEKS := 3
 
 # 零工
 const GIG_INCOME_PARTTIME := 280
@@ -23,8 +23,8 @@ const MARKET_WIND_CYCLE := 3          # 每3周判定一次新风向
 const MARKET_WIND_CHANCE := 0.50      # 50%概率产生风向
 const MARKET_EVENT_CHANCE := 0.25     # 每周25%概率产生市场事件
 
-# 学习疲劳：同一技能每周第3次起XP减半
-const STUDY_FATIGUE_THRESHOLD := 3
+# 学习疲劳：同一技能每周第4次起XP减半
+const STUDY_FATIGUE_THRESHOLD := 4
 
 # 人际关系
 const MAX_NETWORKING_POINTS := 10
@@ -55,13 +55,25 @@ const MAX_TOOLS := 3
 const SHOP_DISPLAY_COUNT := 3
 const SHOP_ENERGY_COST := 1
 
+# 起始技能方向特色加成
+const SKILL_BONUS_BACKEND_SALARY := 0.10       # 后端：相关岗位薪资+10%
+const SKILL_BONUS_FRONTEND_INTERVIEW := 0.08   # 前端：面试通过率+8%
+const SKILL_BONUS_ALGORITHM_BIGCO := 0.15      # 算法：大厂简历通过率+15%
+const SKILL_BONUS_DATA_OUTSOURCE := 0.15       # 数据工程：外包刷新率+15%
+const SKILL_BONUS_DATA_OUTSOURCE_INCOME := 0.20 # 数据工程：外包收入+20%
+const SKILL_BONUS_INFRA_INTERVIEW_COST := 1    # 基础设施：面试消耗1AP（原2AP）
+
 # 海投
 const MASS_APPLY_COUNT := 5           # 海投随机选5个岗位
 
-# 岗位职级分布
-const TIER_CHANCE_JUNIOR := 0.50
-const TIER_CHANCE_MID := 0.35
-const TIER_CHANCE_SENIOR := 0.15
+# 岗位职级分布 — 前半程 (week 1-6)
+const TIER_CHANCE_JUNIOR_EARLY := 0.60
+const TIER_CHANCE_MID_EARLY := 0.30
+const TIER_CHANCE_SENIOR_EARLY := 0.10
+# 岗位职级分布 — 后半程 (week 7-12)
+const TIER_CHANCE_JUNIOR_LATE := 0.35
+const TIER_CHANCE_MID_LATE := 0.40
+const TIER_CHANCE_SENIOR_LATE := 0.25
 
 # ══════════════════════════════════════════
 #  枚举
@@ -132,6 +144,15 @@ static func get_general_skill_name(skill: GeneralSkillType) -> String:
 		GeneralSkillType.COMMUNICATION: return "沟通"
 		GeneralSkillType.INTERVIEW_SKILL: return "面试技巧"
 		_: return "未知"
+
+static func get_skill_bonus_description(skill: SkillType) -> String:
+	match skill:
+		SkillType.BACKEND: return "后端相关岗位薪资+10%"
+		SkillType.FRONTEND: return "面试通过率+8%"
+		SkillType.ALGORITHM: return "大厂简历通过率+15%"
+		SkillType.DATA_ENGINEERING: return "外包刷新率+15%，外包收入+20%"
+		SkillType.INFRASTRUCTURE: return "面试消耗1AP（原2AP）"
+		_: return ""
 
 static func get_all_skill_types() -> Array:
 	return [

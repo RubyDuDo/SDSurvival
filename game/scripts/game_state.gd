@@ -323,7 +323,7 @@ func get_study_fatigue(key: Variant) -> String:
 	if count < threshold - 1:
 		return "normal"
 	else:
-		return "half"  # 第3次及以后减半
+		return "half"  # 第4次及以后减半
 
 
 ## 学习专业技能 (1EP)
@@ -337,7 +337,7 @@ func action_study_skill(skill_type: GameData.SkillType) -> bool:
 	var threshold: int = GameData.STUDY_FATIGUE_THRESHOLD + fatigue_bonus_this_week
 	var xp_gain: float = 1.0
 	if count >= threshold - 1:
-		xp_gain = 0.5  # 第3次起减半
+		xp_gain = 0.5  # 第4次起减半
 	xp_gain += _get_study_xp_bonus()
 	weekly_study_count[skill_type] = count + 1
 	_weekly_study_total += 1
@@ -440,16 +440,22 @@ func action_mass_apply() -> Array[String]:
 	return applied
 
 
-## 参加面试 (2EP)
+## 参加面试 (2EP, 基础设施方向1EP)
+func get_interview_cost() -> int:
+	if starting_skill == GameData.SkillType.INFRASTRUCTURE:
+		return GameData.SKILL_BONUS_INFRA_INTERVIEW_COST
+	return 2
+
 func action_interview(listing_id: String) -> bool:
-	if get_free_energy() < 2:
+	var cost := get_interview_cost()
+	if get_free_energy() < cost:
 		return false
 	if not applications.has(listing_id):
 		return false
 	var app: GameData.JobApplication = applications[listing_id]
 	if app.status != GameData.ApplicationStatus.HAS_INTERVIEW:
 		return false
-	energy -= 2
+	energy -= cost
 	app.status = GameData.ApplicationStatus.INTERVIEWED
 	_interviewed_this_week.append(listing_id)
 	stats_total_interviews += 1
@@ -624,6 +630,9 @@ func action_take_outsource() -> bool:
 	# 知识星球+$80
 	if has_tool("zhishixingqiu"):
 		income += 80
+	# 数据工程方向：外包收入+20%
+	if starting_skill == GameData.SkillType.DATA_ENGINEERING:
+		income = roundi(income * (1.0 + GameData.SKILL_BONUS_DATA_OUTSOURCE_INCOME))
 	income = roundi(income * _get_gig_income_multiplier())
 	cash += income
 	stats_total_gig_income += income
@@ -979,6 +988,9 @@ func _check_outsource_refresh(result: WeekSettlement) -> void:
 		chance += 0.15
 	if has_trait("outsource_pro"):
 		chance += 0.20
+	# 数据工程方向特色：外包刷新率+15%
+	if starting_skill == GameData.SkillType.DATA_ENGINEERING:
+		chance += GameData.SKILL_BONUS_DATA_OUTSOURCE
 	chance = clampf(chance, 0.30, 0.75)
 	if randf() >= chance:
 		return
@@ -1334,8 +1346,14 @@ func calc_resume_pass_rate(listing: GameData.JobListing, is_referral: bool = fal
 	var project_bonus := GameData.PERSONAL_PROJECT_RESUME_BONUS if personal_project_done else 0.0
 	var template_bonus := 0.05 if has_tool("resume_template") else 0.0
 
+	# 算法方向特色：大厂简历通过率+15%
+	var algo_bigco_bonus := 0.0
+	if starting_skill == GameData.SkillType.ALGORITHM \
+			and listing.company_def.scale == GameData.CompanyScale.BIG:
+		algo_bigco_bonus = GameData.SKILL_BONUS_ALGORITHM_BIGCO
+
 	var rate := base_score + comm_bonus + network_bonus + work_exp_bonus \
-		+ bigco_bonus - gap_penalty + project_bonus + template_bonus
+		+ bigco_bonus - gap_penalty + project_bonus + template_bonus + algo_bigco_bonus
 
 	# 内推加成
 	if is_referral:
@@ -1388,8 +1406,14 @@ func calc_interview_pass_rate(listing: GameData.JobListing) -> float:
 		if current_market_event.effect_tag == "policy_boost":
 			tool_bonus += 0.15
 
+	# 前端方向特色：面试通过率+8%
+	var skill_dir_bonus := 0.0
+	if starting_skill == GameData.SkillType.FRONTEND:
+		skill_dir_bonus = GameData.SKILL_BONUS_FRONTEND_INTERVIEW
+
 	var rate := base_rate + skill_bonus + interview_bonus + comm_bonus \
-		+ work_exp_bonus + bigco_bonus - gap_penalty + project_bonus + tool_bonus
+		+ work_exp_bonus + bigco_bonus - gap_penalty + project_bonus + tool_bonus \
+		+ skill_dir_bonus
 
 	return clampf(rate, 0.10, 0.90)
 
@@ -1440,12 +1464,20 @@ func _generate_all_company_listings() -> void:
 
 
 func _create_listing_for_company(company: GameData.CompanyDef) -> void:
-	# 决定职级
+	# 决定职级（前半程偏初级，后半程偏高级）
 	var tier_roll := randf()
 	var tier: GameData.JobTier
-	if tier_roll < GameData.TIER_CHANCE_JUNIOR:
+	var junior_chance: float
+	var mid_chance: float
+	if week <= 6:
+		junior_chance = GameData.TIER_CHANCE_JUNIOR_EARLY
+		mid_chance = GameData.TIER_CHANCE_MID_EARLY
+	else:
+		junior_chance = GameData.TIER_CHANCE_JUNIOR_LATE
+		mid_chance = GameData.TIER_CHANCE_MID_LATE
+	if tier_roll < junior_chance:
 		tier = GameData.JobTier.JUNIOR
-	elif tier_roll < GameData.TIER_CHANCE_JUNIOR + GameData.TIER_CHANCE_MID:
+	elif tier_roll < junior_chance + mid_chance:
 		tier = GameData.JobTier.MID
 	else:
 		tier = GameData.JobTier.SENIOR
@@ -1468,6 +1500,12 @@ func _create_listing_for_company(company: GameData.CompanyDef) -> void:
 	# 随机化薪资
 	var salary_mult := company.get_salary_multiplier()
 	var actual_salary := roundi(job.base_salary * salary_mult * randf_range(0.9, 1.1) / 10.0) * 10
+	# 后端方向特色：后端相关岗位薪资+10%
+	if starting_skill == GameData.SkillType.BACKEND:
+		for req in job.skill_requirements:
+			if req.skill == GameData.SkillType.BACKEND:
+				actual_salary = roundi(actual_salary * (1.0 + GameData.SKILL_BONUS_BACKEND_SALARY) / 10.0) * 10
+				break
 
 	# 随机化技能需求 (±1 变动，但不低于原始-1，不高于原始+1)
 	var actual_reqs: Array = []
