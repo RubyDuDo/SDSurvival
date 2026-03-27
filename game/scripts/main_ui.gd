@@ -1217,12 +1217,7 @@ func _populate_company_list() -> void:
 		var listing_count := game.get_company_listing_count(company.id)
 		var scale_tag := _make_scale_tag(company.scale)
 		var btn := Button.new()
-		btn.text = "%s %s  %s  %s  %s  %s" % [
-			scale_tag, company.get_display_name(),
-			tr("UI_BENEFIT_FORMAT") % company.get_benefit_text(),
-			tr("UI_STATUS_FORMAT") % company.get_status_text(),
-			tr("UI_PREF_FORMAT") % company.get_preferred_skills_text(),
-			tr("UI_HIRING_FORMAT") % listing_count]
+		btn.text = "%s  %s" % [scale_tag, company.get_display_name()]
 		UITheme.style_menu_button(btn)
 		btn.pressed.connect(_on_company_detail.bind(company))
 		sub_menu_list.add_child(btn)
