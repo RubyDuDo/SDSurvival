@@ -122,31 +122,19 @@ var stats_total_study_count: int = 0
 # ── 起始技能 ──
 var starting_skill: GameData.SkillType = GameData.SkillType.BACKEND
 
-# ── 面试反馈文案 ──
-const _RESUME_GHOST := [
-	"（%s 看了眼你的简历，然后沉默了。）",
-	"（简历石沉大海，%s 从此杳无音讯。）",
-	"（%s 把你的简历移入了回收站，但没有清空。）",
-	"（%s 的 HR 可能还没上班。）",
-]
-const _RESUME_UNDERQUALIFIED := [
-	"综合评估后，您的技能暂时与岗位需求有差距，感谢投递。",
-	"经过仔细阅读，%s 决定暂不推进，欢迎您提升后再来。",
-	"您的申请我们已收到，但目前的匹配度不符合要求。",
-]
-const _INTERVIEW_FAIL := [
-	"说不出哪儿不好，就是感觉不太对。",
-	"面试官觉得您与团队文化契合度有些担忧。",
-	"双方聊得有点不在一个频道，最终没有推进。",
-	"技术没问题，但沟通风格让面试官有些顾虑。",
-	"虽然您表现出色，但此次竞争激烈，遗憾落选。",
-	"HC 有限，最终选了另一位候选人，非常抱歉。",
-]
-const _RESUME_FAKE_CAUGHT := [
-	"面试官深入追问技术细节，发现与简历描述不符，面试提前结束。",
-	"被要求现场手写代码时露馅了，面试官表情微妙。",
-	"项目经历被追问后前后矛盾，面试官委婉地结束了面试。",
-]
+# ── 面试反馈文案（通过翻译键获取）──
+func _get_resume_ghost() -> Array:
+	return [tr("GHOST_1"), tr("GHOST_2"), tr("GHOST_3"), tr("GHOST_4")]
+
+func _get_resume_underqualified() -> Array:
+	return [tr("UNDERQUALIFIED_1"), tr("UNDERQUALIFIED_2"), tr("UNDERQUALIFIED_3")]
+
+func _get_interview_fail() -> Array:
+	return [tr("INTERVIEW_FAIL_1"), tr("INTERVIEW_FAIL_2"), tr("INTERVIEW_FAIL_3"),
+		tr("INTERVIEW_FAIL_4"), tr("INTERVIEW_FAIL_5"), tr("INTERVIEW_FAIL_6")]
+
+func _get_resume_fake_caught() -> Array:
+	return [tr("FAKE_CAUGHT_1"), tr("FAKE_CAUGHT_2"), tr("FAKE_CAUGHT_3")]
 
 
 func _init() -> void:
@@ -794,8 +782,8 @@ func settle_week() -> WeekSettlement:
 	# 8.5 处理辞职
 	if pending_quit:
 		result.did_quit = true
-		result.notifications.append("你已离职：%s @ %s" % [
-			current_job_listing.job.title, current_job_listing.company_def.name])
+		result.notifications.append(tr("MSG_QUIT") % [
+			current_job_listing.job.get_display_title(), current_job_listing.company_def.get_display_name()])
 		current_job_listing = null
 		pending_quit = false
 
@@ -806,7 +794,7 @@ func settle_week() -> WeekSettlement:
 		var chosen: GameData.SkillType = random_skills[randi() % random_skills.size()]
 		if skills[chosen] < GameData.MAX_SKILL_LEVEL:
 			_add_skill_xp(chosen, 0.5)
-			result.notifications.append("📱 iPad通勤学习：+0.5 %s XP" % GameData.get_skill_name(chosen))
+			result.notifications.append(tr("MSG_IPAD") % GameData.get_skill_name(chosen))
 
 	# 共享办公: 每周自动+0.5人脉（偶数周+1）
 	if has_tool("coworking") and networking_points < GameData.MAX_NETWORKING_POINTS:
@@ -833,7 +821,7 @@ func settle_week() -> WeekSettlement:
 	if wind_weeks_left > 0:
 		wind_weeks_left -= 1
 		if wind_weeks_left == 0:
-			result.notifications.append("📊 市场风向「%s」已结束" % current_wind.name)
+			result.notifications.append(tr("MSG_WIND_END") % current_wind.get_display_name())
 			current_wind = null
 
 	# 事件倒计时
@@ -902,23 +890,23 @@ func _process_resume_results(result: WeekSettlement) -> void:
 		if randf() < 0.10:
 			app.status = GameData.ApplicationStatus.REJECTED
 			stats_total_rejections += 1
-			var msg: String = _RESUME_GHOST[randi() % _RESUME_GHOST.size()]
-			result.notifications.append("%s：%s" % [title, msg % listing.company_def.name])
+			var msg: String = _get_resume_ghost()[randi() % _get_resume_ghost().size()]
+			result.notifications.append("%s: %s" % [title, msg % listing.company_def.get_display_name()])
 			continue
 
 		var pass_rate := calc_resume_pass_rate(listing, app.is_referral)
 		if randf() < pass_rate:
 			app.status = GameData.ApplicationStatus.HAS_INTERVIEW
-			var referral_note := "（内推加成！）" if app.is_referral else ""
+			var referral_note := tr("MSG_REFERRAL_NOTE") if app.is_referral else ""
 			if app.is_referral:
 				_referral_interview_count += 1
-			result.notifications.append("✅ %s：简历通过！已安排面试。%s" % [title, referral_note])
+			result.notifications.append(tr("MSG_RESUME_PASS") % [title, referral_note])
 		else:
 			app.status = GameData.ApplicationStatus.REJECTED
 			stats_total_rejections += 1
-			var msg: String = _RESUME_UNDERQUALIFIED[randi() % _RESUME_UNDERQUALIFIED.size()]
-			var formatted := msg % listing.company_def.name if "%s" in msg else msg
-			result.notifications.append("❌ %s：%s" % [title, formatted])
+			var msg: String = _get_resume_underqualified()[randi() % _get_resume_underqualified().size()]
+			var formatted := msg % listing.company_def.get_display_name() if "%s" in msg else msg
+			result.notifications.append(tr("MSG_RESUME_FAIL") % [title, formatted])
 
 
 func _process_interview_results(result: WeekSettlement) -> void:
@@ -935,8 +923,8 @@ func _process_interview_results(result: WeekSettlement) -> void:
 		if resume_faked and randf() < GameData.RESUME_FAKE_CATCH_CHANCE:
 			app.status = GameData.ApplicationStatus.REJECTED
 			stats_total_rejections += 1
-			var msg: String = _RESUME_FAKE_CAUGHT[randi() % _RESUME_FAKE_CAUGHT.size()]
-			result.notifications.append("❌ %s（包装被拆穿）：%s" % [title, msg])
+			var msg: String = _get_resume_fake_caught()[randi() % _get_resume_fake_caught().size()]
+			result.notifications.append(tr("MSG_FAKE_CAUGHT") % [title, msg])
 			continue
 
 		var pass_rate := calc_interview_pass_rate(listing)
@@ -952,13 +940,12 @@ func _process_interview_results(result: WeekSettlement) -> void:
 				_check_and_grant_trait("negotiator", result)
 			_interview_pass_count += 1
 			result.notifications.append(
-				"🎉 %s Offer！（周薪 $%d，%d周内有效）" % [
-					title, listing.actual_salary, app.offer_weeks_left])
+				tr("MSG_OFFER") % [title, listing.actual_salary, app.offer_weeks_left])
 		else:
 			app.status = GameData.ApplicationStatus.REJECTED
 			stats_total_rejections += 1
-			var msg: String = _INTERVIEW_FAIL[randi() % _INTERVIEW_FAIL.size()]
-			result.notifications.append("❌ %s 面试未通过：%s" % [title, msg])
+			var msg: String = _get_interview_fail()[randi() % _get_interview_fail().size()]
+			result.notifications.append(tr("MSG_INTERVIEW_FAIL") % [title, msg])
 
 
 func _check_referral(result: WeekSettlement) -> void:
@@ -975,7 +962,7 @@ func _check_referral(result: WeekSettlement) -> void:
 	_pending_referrals.append(listing.listing_id)
 	result.referral_listing_id = listing.listing_id
 	result.notifications.append(
-		"🤝 朋友内推：%s，简历通过率×%.0f%%！" % [
+		tr("MSG_REFERRAL") % [
 			listing.get_display_title(),
 			(GameData.REFERRAL_RESUME_MULT if not has_trait("insider") else 2.0) * 100])
 
@@ -1009,7 +996,7 @@ func _check_outsource_refresh(result: WeekSettlement) -> void:
 	var energy_cost := 2 + (randi() % 2)  # 2-3
 	current_outsource = GameData.OutsourceOpportunity.new(level, chosen_skill, energy_cost)
 	result.outsource_available = true
-	result.notifications.append("💼 外包机会：%s（%s Lv.%d+，%dEP→$%d）" % [
+	result.notifications.append(tr("MSG_OUTSOURCE_AVAIL") % [
 		current_outsource.get_level_text(),
 		GameData.get_skill_name(chosen_skill),
 		current_outsource.get_min_skill_level(),
@@ -1046,7 +1033,7 @@ func _roll_market_wind(result: WeekSettlement) -> void:
 	current_wind = GameData.generate_random_wind()
 	wind_weeks_left = GameData.MARKET_WIND_CYCLE
 	result.wind_changed = true
-	result.notifications.append("📊 市场风向：%s（持续%d周）" % [current_wind.name, wind_weeks_left])
+	result.notifications.append(tr("MSG_WIND_NEW") % [current_wind.get_display_name(), wind_weeks_left])
 
 
 func _roll_market_event(result: WeekSettlement) -> void:
@@ -1054,8 +1041,8 @@ func _roll_market_event(result: WeekSettlement) -> void:
 	current_market_event = event
 	market_event_weeks_left = event.duration
 	result.market_event_started = true
-	result.notifications.append("⚡ 市场事件：%s（持续%d周）" % [event.name, event.duration])
-	result.notifications.append("   %s" % event.description)
+	result.notifications.append(tr("MSG_EVENT_NEW") % [event.get_display_name(), event.duration])
+	result.notifications.append("   %s" % event.get_display_desc())
 	_apply_market_event(event)
 
 
@@ -1091,7 +1078,7 @@ func _apply_market_event(event: GameData.MarketEventDef) -> void:
 func _end_market_event(result: WeekSettlement) -> void:
 	if current_market_event == null:
 		return
-	result.notifications.append("📰 市场事件「%s」已结束" % current_market_event.name)
+	result.notifications.append(tr("MSG_EVENT_END") % current_market_event.get_display_name())
 	if current_market_event.effect_tag in ["ai_shock", "funding_boom"]:
 		for c in companies:
 			if _original_business_status.has(c.id):
@@ -1149,44 +1136,44 @@ func _process_random_event(result: WeekSettlement) -> void:
 
 	match chosen_id:
 		"computer_broke":
-			result.event_name = "🔧 电脑出了点问题"
-			result.event_desc = "紧急维修费 $300。"
+			result.event_name = tr("RANDOM_computer_broke")
+			result.event_desc = tr("RANDOM_computer_broke_DESC")
 			cash -= 300
 		"rent_increase":
-			result.event_name = "🏠 临时涨租"
-			result.event_desc = "房东要求补交差价，额外支出 $250。"
+			result.event_name = tr("RANDOM_rent_increase")
+			result.event_desc = tr("RANDOM_rent_increase_DESC")
 			cash -= 250
 		"unexpected_expense":
-			result.event_name = "💸 意外支出"
-			result.event_desc = "突发支出 -$500。"
+			result.event_name = tr("RANDOM_unexpected_expense")
+			result.event_desc = tr("RANDOM_unexpected_expense_DESC")
 			cash -= 500
 		"sick":
-			result.event_name = "🤒 突发低烧"
-			result.event_desc = "下周最大能量 -2。"
+			result.event_name = tr("RANDOM_sick")
+			result.event_desc = tr("RANDOM_sick_DESC")
 			_energy_modifier_next_week -= 2
 		"freelance_gig":
-			result.event_name = "💰 接到小单"
-			result.event_desc = "意外接到外包小单，收入 +$350。"
+			result.event_name = tr("RANDOM_freelance_gig")
+			result.event_desc = tr("RANDOM_freelance_gig_DESC")
 			cash += 350
 		"good_mood":
-			result.event_name = "☀ 今天状态奇好"
-			result.event_desc = "下周能量上限 +2。"
+			result.event_name = tr("RANDOM_good_mood")
+			result.event_desc = tr("RANDOM_good_mood_DESC")
 			_energy_modifier_next_week += 2
 		"cheap_food":
-			result.event_name = "🍜 发现省钱攻略"
-			result.event_desc = "附近超市大促，生活补贴 +$250。"
+			result.event_name = tr("RANDOM_cheap_food")
+			result.event_desc = tr("RANDOM_cheap_food_DESC")
 			cash += 250
 		"flash_inspiration":
-			result.event_name = "💡 灵感爆发"
-			result.event_desc = "下周学习任意专业技能获得双倍XP（疲劳阈值+1）！"
+			result.event_name = tr("RANDOM_flash_inspiration")
+			result.event_desc = tr("RANDOM_flash_inspiration_DESC")
 			_fatigue_bonus_next_week = 1
 		"networking_opportunity":
-			result.event_name = "🤝 社交机会"
-			result.event_desc = "参加行业聚会，人际关系+1。"
+			result.event_name = tr("RANDOM_networking_opportunity")
+			result.event_desc = tr("RANDOM_networking_opportunity_DESC")
 			networking_points = mini(networking_points + 1, GameData.MAX_NETWORKING_POINTS)
 		"quarterly_bonus":
-			result.event_name = "🎁 季度奖金"
-			result.event_desc = "公司发放季度奖金 +$600。"
+			result.event_name = tr("RANDOM_quarterly_bonus")
+			result.event_desc = tr("RANDOM_quarterly_bonus_DESC")
 			cash += 600
 
 
@@ -1269,35 +1256,35 @@ func _track_skill_start(skill_type: GameData.SkillType) -> void:
 func get_trait_progress(trait_id: String) -> String:
 	match trait_id:
 		"juanwang":
-			return "连续学习周数：%d/3" % _study_streak_weeks
+			return tr("PROGRESS_juanwang") % _study_streak_weeks
 		"speedrun":
-			return "（需在4周内将专业技能0→5）"
+			return tr("PROGRESS_speedrun")
 		"duomian":
 			var count := 0
 			for st in GameData.get_all_skill_types():
 				if skills[st] >= 3:
 					count += 1
-			return "专业技能≥3的数量：%d/3" % count
+			return tr("PROGRESS_duomian") % count
 		"mianba":
-			return "面试通过：%d/3" % _interview_pass_count
+			return tr("PROGRESS_mianba") % _interview_pass_count
 		"haiwang":
-			return "使用海投周数：%d/2" % _mass_apply_weeks
+			return tr("PROGRESS_haiwang") % _mass_apply_weeks
 		"negotiator":
 			if _has_rejected_offer:
-				return "已拒绝Offer（最高$%d/周），等待更高薪Offer" % _highest_rejected_salary
-			return "尚未拒绝过Offer"
+				return tr("PROGRESS_negotiator_waiting") % _highest_rejected_salary
+			return tr("PROGRESS_negotiator_none")
 		"conservative":
-			return "连续>$3,000周数：%d/4" % _cash_above_3000_weeks
+			return tr("PROGRESS_conservative") % _cash_above_3000_weeks
 		"slasher":
-			return "零工/外包次数：%d/8" % _total_gig_count
+			return tr("PROGRESS_slasher") % _total_gig_count
 		"desperate":
-			return "现金：$%d（<$500触发）" % cash
+			return tr("PROGRESS_desperate") % cash
 		"social_butterfly":
-			return "人际关系：%d/7" % mini(networking_points, 7)
+			return tr("PROGRESS_social_butterfly") % mini(networking_points, 7)
 		"insider":
-			return "内推面试：%d/2" % _referral_interview_count
+			return tr("PROGRESS_insider") % _referral_interview_count
 		"outsource_pro":
-			return "外包完成：%d/5" % outsource_count
+			return tr("PROGRESS_outsource_pro") % outsource_count
 		_:
 			return ""
 
@@ -1585,12 +1572,12 @@ func get_ending() -> GameData.EndingRank:
 
 func get_wind_text() -> String:
 	if current_wind != null and wind_weeks_left > 0:
-		return "%s（剩%d周）" % [current_wind.name, wind_weeks_left]
+		return tr("MSG_WIND_LEFT") % [current_wind.get_display_name(), wind_weeks_left]
 	return ""
 
 func get_market_event_text() -> String:
 	if current_market_event != null and market_event_weeks_left > 0:
-		return "%s（剩%d周）" % [current_market_event.name, market_event_weeks_left]
+		return tr("MSG_EVENT_LEFT") % [current_market_event.get_display_name(), market_event_weeks_left]
 	return ""
 
 func find_company(company_id: String) -> GameData.CompanyDef:
@@ -1640,7 +1627,7 @@ func has_outsource_available() -> bool:
 func get_outsource_info() -> String:
 	if current_outsource == null:
 		return ""
-	return "%s（%s，%dEP→$%d）" % [
+	return tr("MSG_OUTSOURCE_INFO") % [
 		current_outsource.get_level_text(),
 		GameData.get_skill_name(current_outsource.required_skill),
 		current_outsource.energy_cost,

@@ -31,35 +31,43 @@ extends Control
 @onready var sub_menu_title: RichTextLabel = %SubMenuTitle
 
 @onready var skill_select_panel: Panel = %SkillSelectPanel
-@onready var skill_buttons: HBoxContainer = %SkillButtons
+@onready var skill_buttons: VBoxContainer = %SkillButtons
 @onready var company_button: Button = %CompanyButton
 @onready var intro_panel: Panel = %IntroPanel
 @onready var intro_label: RichTextLabel = %IntroLabel
+@onready var title_panel: Panel = %TitlePanel
+@onready var title_label: RichTextLabel = %TitleLabel
+@onready var subtitle_label: Label = %SubtitleLabel
+@onready var title_lang_button: Button = %LangButton
+@onready var title_start_button: Button = %StartButton
 
 var game: GameState
 var _shop_mode: bool = false
 var _replacing_tool_id: String = ""
 var _company_mode: bool = false
 var _flash_skill_key: String = ""  # 用于触发右侧信息卡闪烁
+var _lang_button: Button
+var _header_restart_button: Button
 
 
-const INTRO_STORIES := [
-	"[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]你是一个初出茅庐的程序员。\n\n毕业季的校园里，同学们纷纷拿到了心仪的 Offer，\n而你却还在为未来迷茫。\n\n怀揣着一笔不多的积蓄，\n你决定用接下来 12 周的时间，\n闯出属于自己的一片天。\n\n学技能，投简历，面试，接外包……\n每一个选择都至关重要。[/color][/center]",
-
-	"[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]秋招季。\n\n你看着招聘网站上 99+ 的已读不回，\n关掉了第 47 个「感谢您的投递，\n但很遗憾……」的邮件。\n\n卡里的余额在一天天减少，\n但你知道只要坚持下去，\n总会有一扇门为你打开。\n\n12 周。这是你给自己定下的最后期限。[/color][/center]",
-
-	"[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]\"您的简历已进入人才库。\"\n\n翻译：我们不要你。\n\n你合上笔记本电脑，深吸一口气，\n打开了 LeetCode。\n\n没关系。从今天开始，\n用 12 周时间，\n把自己打造成他们拒绝不了的人。\n\n毕竟，404 之后，总会有 200 OK。[/color][/center]",
-]
+func _get_intro_stories() -> Array[String]:
+	return [
+		tr("INTRO_ZH_1"),
+		tr("INTRO_ZH_2"),
+		tr("INTRO_ZH_3"),
+	]
 
 func _ready() -> void:
 	game = GameState.new()
 	_apply_panel_styles()
+	_apply_localized_text()
 	settlement_panel.visible = false
 	ending_panel.visible = false
 	sub_menu_panel.visible = false
 	skill_select_panel.visible = false
-	intro_panel.visible = true
-	_show_intro()
+	intro_panel.visible = false
+	title_panel.visible = true
+	_setup_title_screen()
 
 
 # ══════════════════════════════════════════
@@ -95,7 +103,151 @@ func _apply_panel_styles() -> void:
 	# Header 公司列表按钮
 	UITheme.style_menu_button(company_button, 13)
 	company_button.custom_minimum_size = Vector2(90, 0)
+	company_button.text = tr("UI_COMPANY_LIST")
 	company_button.pressed.connect(_on_company_list_menu)
+
+	# 重新开始按钮
+	var header_restart_btn := Button.new()
+	header_restart_btn.text = tr("UI_RESTART_GAME")
+	UITheme.style_menu_button(header_restart_btn, 13)
+	header_restart_btn.custom_minimum_size = Vector2(70, 0)
+	header_restart_btn.pressed.connect(_on_header_restart)
+	company_button.get_parent().add_child(header_restart_btn)
+	_header_restart_button = header_restart_btn
+
+	# 语言切换按钮
+	_lang_button = Button.new()
+	_lang_button.text = tr("UI_LANG_TOGGLE")
+	UITheme.style_menu_button(_lang_button, 13)
+	_lang_button.custom_minimum_size = Vector2(50, 0)
+	_lang_button.pressed.connect(_on_lang_toggle)
+	company_button.get_parent().add_child(_lang_button)
+
+
+func _apply_localized_text() -> void:
+	# 场景中原本硬编码的中文文本，现在动态设置
+	var action_title: RichTextLabel = %LeftPanel.get_node("LeftMargin/LeftVBox/ActionTitle")
+	action_title.text = "[b]%s[/b]" % tr("UI_ACTION")
+	var continue_btn := settlement_panel.get_node("SettlementCenter/SettlementCard/SettlementMargin/VBox/ContinueButton")
+	continue_btn.text = tr("UI_CONTINUE")
+	var restart_btn := ending_panel.get_node("EndingCenter/EndingCard/EndingMargin/VBox/RestartButton")
+	restart_btn.text = tr("UI_RESTART")
+	sub_menu_title.text = "[b]%s[/b]" % tr("UI_SELECT")
+	var skill_title: Label = skill_select_panel.get_node("SkillSelectCenter/SkillSelectVBox/Title")
+	skill_title.text = tr("UI_SKILL_SELECT_TITLE")
+	var skill_desc: Label = skill_select_panel.get_node("SkillSelectCenter/SkillSelectVBox/Desc")
+	skill_desc.text = tr("UI_SKILL_SELECT_DESC")
+	var intro_hint: Label = intro_panel.get_node("IntroCenter/IntroVBox/IntroHint")
+	intro_hint.text = tr("UI_CLICK_CONTINUE")
+	if _header_restart_button:
+		_header_restart_button.text = tr("UI_RESTART_GAME")
+
+
+# ══════════════════════════════════════════
+#  启动页面
+# ══════════════════════════════════════════
+
+func _setup_title_screen() -> void:
+	_update_title_text()
+	UITheme.style_title_button(title_start_button, 18)
+	UITheme.style_title_button(title_lang_button, 15)
+	_populate_title_bg_decorations()
+
+
+func _update_title_text() -> void:
+	var t := tr("UI_GAME_TITLE")
+	var bbcode := "[center][font_size=58][color=#60A5FA][b]%s[/b][/color][/font_size][/center]" % t
+	title_label.text = bbcode
+	# 清除旧的 outline（主文字不需要硬 outline）
+	title_label.add_theme_constant_override("outline_size", 0)
+	# 渐变发光：多层叠加，由外到内 outline 越小、越亮
+	_rebuild_title_glow(bbcode)
+	subtitle_label.text = tr("UI_GAME_SUBTITLE")
+	title_start_button.text = tr("UI_START")
+	title_lang_button.text = tr("UI_LANG_TOGGLE")
+
+
+## 在标题后面叠多层模糊光晕
+func _rebuild_title_glow(bbcode: String) -> void:
+	# 清除旧的光晕层
+	for child in title_label.get_children():
+		child.queue_free()
+	# 光晕参数：[outline_size, alpha]  由外到内
+	var glow_layers := [
+		[24, 0.04],
+		[18, 0.06],
+		[12, 0.10],
+		[6,  0.18],
+	]
+	for layer in glow_layers:
+		var glow := RichTextLabel.new()
+		glow.bbcode_enabled = true
+		glow.fit_content = true
+		glow.scroll_active = false
+		glow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		glow.text = bbcode
+		glow.add_theme_font_size_override("normal_font_size", title_label.get_theme_font_size("normal_font_size"))
+		glow.add_theme_constant_override("outline_size", layer[0])
+		glow.add_theme_color_override("font_outline_color", Color(0.23, 0.51, 0.96, layer[1]))
+		# 主文字设为全透明，只显示 outline
+		glow.add_theme_color_override("default_color", Color(0, 0, 0, 0))
+		# 与 title_label 完全重叠
+		glow.set_anchors_preset(Control.PRESET_FULL_RECT)
+		glow.show_behind_parent = true
+		title_label.add_child(glow)
+
+
+func _populate_title_bg_decorations() -> void:
+	# 在背景上撒一些半透明的科技符号
+	var bg_node: ColorRect = title_panel.get_node("TitleBG")
+	var fragments := [
+		"01010", "10110", "0111", "1010", "00101", "11001",
+		"{ }", "< />", "< >", ">>>", "[ ]", "//", "/**",
+		"git push", "npm run", "def main():", "int main()",
+		"sudo", "chmod", "grep", "&&", "||", "::", "=>",
+		"NULL", "void", "async", "await", "import", "return",
+		"0x3F", "0xFF", "127.0.0.1", "::1", "404", "200 OK",
+	]
+	var positions: Array[Vector2] = []
+	for i in range(30):
+		var label := Label.new()
+		label.text = fragments[randi() % fragments.size()]
+		# 随机大小
+		var font_size := randi_range(12, 22)
+		label.add_theme_font_size_override("font_size", font_size)
+		# 随机透明度（深浅差异大）
+		var alpha := randf_range(0.06, 0.25)
+		label.add_theme_color_override("font_color", Color(0.37, 0.65, 0.98, alpha))
+		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		# 随机位置（避免与中心内容重叠）
+		var pos := Vector2.ZERO
+		for _attempt in range(20):
+			pos = Vector2(randf_range(20, 1100), randf_range(20, 620))
+			# 避开中心区域（标题+按钮大约在 300~800 x 180~480）
+			var in_center := pos.x > 280 and pos.x < 820 and pos.y > 160 and pos.y < 500
+			if not in_center:
+				break
+		label.position = pos
+		# 随机旋转一点点
+		label.rotation = randf_range(-0.15, 0.15)
+		bg_node.add_child(label)
+
+
+func _on_title_start() -> void:
+	title_panel.visible = false
+	intro_panel.visible = true
+	_show_intro()
+
+
+func _on_title_lang_toggle() -> void:
+	if Locale.is_english():
+		Locale.set_locale("zh")
+	else:
+		Locale.set_locale("en")
+	_update_title_text()
+	_apply_localized_text()
+	_lang_button.text = tr("UI_LANG_TOGGLE")
+	company_button.text = tr("UI_COMPANY_LIST")
 
 
 # ══════════════════════════════════════════
@@ -103,14 +255,17 @@ func _apply_panel_styles() -> void:
 # ══════════════════════════════════════════
 
 func _show_intro() -> void:
-	intro_label.text = INTRO_STORIES[randi() % INTRO_STORIES.size()]
+	var stories := _get_intro_stories()
+	intro_label.text = stories[randi() % stories.size()]
 	intro_panel.modulate = Color(1, 1, 1, 0)
 	var tween := create_tween()
 	tween.tween_property(intro_panel, "modulate", Color.WHITE, 1.0)
 
 
 func _input(event: InputEvent) -> void:
-	if intro_panel.visible and event is InputEventMouseButton and event.pressed:
+	if intro_panel == null:
+		return
+	if intro_panel.visible and not title_panel.visible and event is InputEventMouseButton and event.pressed:
 		_dismiss_intro()
 
 
@@ -141,20 +296,87 @@ func _setup_skill_select() -> void:
 		GameData.SkillType.INFRASTRUCTURE: ">>>",
 	}
 
-	for skill_type in GameData.get_all_skill_types():
-		var btn := Button.new()
-		var icon_text: String = skill_icons.get(skill_type, "?")
-		var name_text := GameData.get_skill_name(skill_type)
-		var bonus_desc := GameData.get_skill_bonus_description(skill_type)
-		btn.text = "%s\n%s\n%s" % [icon_text, name_text, bonus_desc]
-		UITheme.style_skill_card(btn)
-		btn.pressed.connect(_on_skill_selected.bind(skill_type))
-		skill_buttons.add_child(btn)
+	var all_skills := GameData.get_all_skill_types()
+	# 3+2 两排居中
+	var row1 := HBoxContainer.new()
+	row1.alignment = BoxContainer.ALIGNMENT_CENTER
+	row1.add_theme_constant_override("separation", 12)
+	skill_buttons.add_child(row1)
+
+	var row2 := HBoxContainer.new()
+	row2.alignment = BoxContainer.ALIGNMENT_CENTER
+	row2.add_theme_constant_override("separation", 12)
+	skill_buttons.add_child(row2)
+
+	for i in range(all_skills.size()):
+		var skill_type: GameData.SkillType = all_skills[i]
+		var btn := _make_skill_card(skill_type, skill_icons.get(skill_type, "?"))
+		if i < 3:
+			row1.add_child(btn)
+		else:
+			row2.add_child(btn)
+
+
+func _make_skill_card(skill_type: GameData.SkillType, icon_text: String) -> Button:
+	var btn := Button.new()
+	btn.text = ""
+	UITheme.style_skill_card(btn)
+	btn.pressed.connect(_on_skill_selected.bind(skill_type))
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_bottom", 6)
+
+	var vbox := VBoxContainer.new()
+	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 2)
+
+	# 图标（大字）
+	var icon_label := Label.new()
+	icon_label.text = icon_text
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.add_theme_font_size_override("font_size", 22)
+	icon_label.add_theme_color_override("font_color", UITheme.ACCENT_PRIMARY)
+	icon_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(icon_label)
+
+	# 技能名
+	var name_label := Label.new()
+	name_label.text = GameData.get_skill_name(skill_type)
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", 15)
+	name_label.add_theme_color_override("font_color", UITheme.TEXT_PRIMARY)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(name_label)
+
+	# 效果描述（小字，逗号分行）
+	var bonus_desc := GameData.get_skill_bonus_description(skill_type)
+	var bonus_parts := bonus_desc.split(", " if Locale.is_english() else "，")
+	for part in bonus_parts:
+		var desc_label := Label.new()
+		desc_label.text = part.strip_edges()
+		desc_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		desc_label.add_theme_font_size_override("font_size", 11)
+		desc_label.add_theme_color_override("font_color", UITheme.TEXT_SECONDARY)
+		desc_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		vbox.add_child(desc_label)
+
+	margin.add_child(vbox)
+	btn.add_child(margin)
+	return btn
 
 
 func _on_skill_selected(skill_type: GameData.SkillType) -> void:
 	game.start_game(skill_type)
 	skill_select_panel.visible = false
+	# 首次进入游戏界面，显示主布局
+	var main_layout := get_node("MainLayout")
+	main_layout.visible = true
 	_refresh_ui()
 
 
@@ -172,7 +394,7 @@ func _refresh_ui() -> void:
 
 func _update_header() -> void:
 	# 左: 周数
-	week_label.text = "[b]第 %d 周[/b] / %d" % [game.week, GameData.MAX_WEEKS]
+	week_label.text = tr("UI_WEEK_FORMAT") % [game.week, GameData.MAX_WEEKS]
 
 	# 中: 周进度条
 	week_bar.text = "[center]%s[/center]" % UITheme.make_week_bar(game.week, GameData.MAX_WEEKS)
@@ -233,7 +455,7 @@ func _add_info_card_skills() -> void:
 	title_label.fit_content = true
 	title_label.scroll_active = false
 	title_label.add_theme_font_size_override("normal_font_size", 14)
-	title_label.text = "[color=#60A5FA][b]角色属性[/b][/color]"
+	title_label.text = "[color=#60A5FA][b]%s[/b][/color]" % tr("UI_CARD_SKILLS")
 	vbox.add_child(title_label)
 
 	# 专业技能行（名称列固定宽度 80）
@@ -249,13 +471,13 @@ func _add_info_card_skills() -> void:
 	var comm_bar := UITheme.make_skill_bar(game.communication, GameData.MAX_GENERAL_SKILL_LEVEL)
 	var comm_progress := game.get_general_skill_xp_progress(true)
 	vbox.add_child(_make_skill_row_hbox(
-		"沟通", "#06B6D4", game.communication, comm_bar, comm_progress, "communication"))
+		GameData.get_general_skill_name(GameData.GeneralSkillType.COMMUNICATION), "#06B6D4", game.communication, comm_bar, comm_progress, "communication"))
 
 	# 面试技巧 - 紫色
 	var int_bar := UITheme.make_skill_bar(game.interview_skill, GameData.MAX_GENERAL_SKILL_LEVEL)
 	var int_progress := game.get_general_skill_xp_progress(false)
 	vbox.add_child(_make_skill_row_hbox(
-		"面试技巧", "#8B5CF6", game.interview_skill, int_bar, int_progress, "interview_skill"))
+		GameData.get_general_skill_name(GameData.GeneralSkillType.INTERVIEW_SKILL), "#8B5CF6", game.interview_skill, int_bar, int_progress, "interview_skill"))
 
 	card.add_child(vbox)
 	info_vbox.add_child(card)
@@ -335,30 +557,30 @@ func _add_info_card_status() -> void:
 	title_label.fit_content = true
 	title_label.scroll_active = false
 	title_label.add_theme_font_size_override("normal_font_size", 14)
-	title_label.text = "[color=#60A5FA][b]状态[/b][/color]"
+	title_label.text = "[color=#60A5FA][b]%s[/b][/color]" % tr("UI_CARD_STATUS")
 	vbox.add_child(title_label)
 
 	# 第1行: 工作经验 | 大厂经验
 	vbox.add_child(_make_status_2col(
-		"工作经验", str(game.work_experience), "",
-		"大厂经验", str(game.bigco_experience), ""))
+		tr("UI_WORK_EXP"), str(game.work_experience), "",
+		tr("UI_BIGCO_EXP"), str(game.bigco_experience), ""))
 
 	# 第2行: Gap时间 | 外包完成
 	vbox.add_child(_make_status_2col(
-		"Gap时间", str(game.gap_time), "",
-		"外包完成", str(game.outsource_count), ""))
+		tr("UI_GAP_TIME"), str(game.gap_time), "",
+		tr("UI_OUTSOURCE_DONE"), str(game.outsource_count), ""))
 
 	# 第3行: 人际关系 | 个人作品（各自支持闪烁）
 	var proj_val: String
 	var proj_color := ""
 	if game.personal_project_done:
-		proj_val = "已完成"
+		proj_val = tr("UI_DONE")
 		proj_color = "#22C55E"
 	else:
 		proj_val = "%d/%d" % [game.personal_project_progress, GameData.PERSONAL_PROJECT_COST]
 	var row3 := _make_status_2col(
-		"人际关系", "%d/%d" % [game.networking_points, GameData.MAX_NETWORKING_POINTS], "",
-		"个人作品", proj_val, proj_color)
+		tr("UI_NETWORKING"), "%d/%d" % [game.networking_points, GameData.MAX_NETWORKING_POINTS], "",
+		tr("UI_PERSONAL_PROJECT"), proj_val, proj_color)
 	# 闪烁人际关系或个人作品时闪整行
 	if _flash_skill_key == "networking" or _flash_skill_key == "personal_project":
 		row3.modulate = Color(1.5, 1.5, 1.8, 1.0)
@@ -369,7 +591,7 @@ func _add_info_card_status() -> void:
 
 	# 末行: 行动力（单独占满宽）
 	var free_energy := game.get_free_energy()
-	var row_ap := _make_status_kv("行动力",
+	var row_ap := _make_status_kv(tr("UI_ACTION_POINTS"),
 		"%d/%d" % [free_energy, game.week_start_energy], "#3B82F6")
 	vbox.add_child(row_ap)
 
@@ -379,7 +601,7 @@ func _add_info_card_status() -> void:
 		warn.fit_content = true
 		warn.scroll_active = false
 		warn.add_theme_font_size_override("normal_font_size", 13)
-		warn.text = "[color=#EF4444]简历包装中[/color] [color=#94A3B8]技能+1，面试30%翻车风险[/color]"
+		warn.text = "[color=#EF4444]%s[/color] [color=#94A3B8]%s[/color]" % [tr("UI_RESUME_FAKING"), tr("UI_RESUME_FAKE_WARN")]
 		vbox.add_child(warn)
 
 	card.add_child(vbox)
@@ -431,19 +653,20 @@ func _make_status_2col(
 ## 在职卡
 func _add_info_card_job() -> void:
 	var lines: Array[String] = []
-	lines.append("[color=#60A5FA][b]在职[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_CARD_JOB"))
 	lines.append("")
 	var border_color: Color
 	if game.current_job_listing:
 		var job := game.current_job_listing
-		lines.append("  [color=#E2E8F0]%s[/color] @ %s" % [job.job.title, job.company_def.name])
-		lines.append("  周薪 [color=#22C55E]$%s[/color]  占用 %dAP" % [
-			_format_number(job.actual_salary), job.job.energy_cost])
+		lines.append("  [color=#E2E8F0]%s[/color] @ %s" % [job.job.get_display_title(), job.company_def.get_display_name()])
+		lines.append("  %s [color=#22C55E]$%s[/color]  %s" % [
+			tr("UI_WEEKLY_SALARY"), _format_number(job.actual_salary),
+			tr("UI_ENERGY_COST") % job.job.energy_cost])
 		if game.pending_quit:
-			lines.append("  [color=#EF4444]已提出辞职，下周生效[/color]")
+			lines.append("  [color=#EF4444]%s[/color]" % tr("UI_QUIT_PENDING"))
 		border_color = UITheme.COLOR_SUCCESS
 	else:
-		lines.append("  [color=#94A3B8]未就业[/color]")
+		lines.append("  [color=#94A3B8]%s[/color]" % tr("UI_UNEMPLOYED"))
 		border_color = UITheme.CAT_OTHER
 
 	_add_info_card(lines, border_color)
@@ -452,7 +675,7 @@ func _add_info_card_job() -> void:
 ## 求职进度卡
 func _add_info_card_applications() -> void:
 	var lines: Array[String] = []
-	lines.append("[color=#60A5FA][b]求职进度[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_CARD_APPLICATIONS"))
 	lines.append("")
 	var has_progress := false
 	for listing_id in game.applications:
@@ -462,23 +685,23 @@ func _add_info_card_applications() -> void:
 		match app.status:
 			GameData.ApplicationStatus.APPLIED:
 				dot = UITheme.status_dot(UITheme.ACCENT_PRIMARY)
-				status_text = "已投递"
+				status_text = tr("UI_APPLIED")
 			GameData.ApplicationStatus.HAS_INTERVIEW:
 				dot = UITheme.status_dot(UITheme.COLOR_SUCCESS)
-				status_text = "[color=#22C55E]有面试机会[/color]"
+				status_text = "[color=#22C55E]%s[/color]" % tr("UI_HAS_INTERVIEW")
 			GameData.ApplicationStatus.INTERVIEWED:
 				dot = UITheme.status_dot(UITheme.ACCENT_SECONDARY)
-				status_text = "面试中"
+				status_text = tr("UI_INTERVIEWING")
 			GameData.ApplicationStatus.OFFER:
 				dot = UITheme.status_dot(UITheme.COLOR_GOLD)
-				status_text = "[color=#FBBF24]Offer（剩余%d周）[/color]" % app.offer_weeks_left
+				status_text = "[color=#FBBF24]%s[/color]" % (tr("UI_OFFER_LEFT") % app.offer_weeks_left)
 			_:
 				continue
 		var title := app.listing.get_display_title()
 		lines.append("  %s %s — %s" % [dot, title, status_text])
 		has_progress = true
 	if not has_progress:
-		lines.append("  [color=#94A3B8]（无）[/color]")
+		lines.append("  [color=#94A3B8]%s[/color]" % tr("UI_NONE"))
 
 	_add_info_card(lines, UITheme.ACCENT_PRIMARY)
 
@@ -486,17 +709,17 @@ func _add_info_card_applications() -> void:
 ## 工具卡
 func _add_info_card_tools() -> void:
 	var lines: Array[String] = []
-	lines.append("[color=#60A5FA][b]工具 [%d/%d][/b][/color]" % [
-		game.owned_tools.size(), GameData.MAX_TOOLS])
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % (
+		tr("UI_TOOLS_HEADER") % [game.owned_tools.size(), GameData.MAX_TOOLS]))
 	lines.append("")
 	if game.owned_tools.is_empty():
-		lines.append("  [color=#94A3B8]（无）[/color]")
+		lines.append("  [color=#94A3B8]%s[/color]" % tr("UI_NONE"))
 	else:
 		for tid in game.owned_tools:
 			var tdef := game._find_tool_def(tid)
 			if tdef:
 				lines.append("  %s [color=#E2E8F0]%s[/color] [color=#94A3B8]%s[/color]" % [
-					tdef.icon, tdef.name, tdef.description])
+					tdef.icon, tdef.get_display_name(), tdef.get_display_desc()])
 
 	_add_info_card(lines, UITheme.ACCENT_PURPLE)
 
@@ -504,16 +727,16 @@ func _add_info_card_tools() -> void:
 ## 特质卡
 func _add_info_card_traits() -> void:
 	var lines: Array[String] = []
-	lines.append("[color=#60A5FA][b]特质[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_CARD_TRAITS"))
 	lines.append("")
 	if game.active_traits.is_empty():
-		lines.append("  [color=#94A3B8]（无）[/color]")
+		lines.append("  [color=#94A3B8]%s[/color]" % tr("UI_NONE"))
 	else:
 		for tid in game.active_traits:
 			var tdef := game._find_trait_def(tid)
 			if tdef:
 				lines.append("  [color=#FBBF24]%s[/color] [color=#94A3B8]%s[/color]" % [
-					tdef.name, tdef.effect_text])
+					tdef.get_display_name(), tdef.get_display_effect()])
 
 	_add_info_card(lines, UITheme.COLOR_GOLD)
 
@@ -521,7 +744,7 @@ func _add_info_card_traits() -> void:
 ## 外包机会卡
 func _add_info_card_outsource() -> void:
 	var lines: Array[String] = []
-	lines.append("[color=#F59E0B][b]外包机会[/b][/color]")
+	lines.append("[color=#F59E0B][b]%s[/b][/color]" % tr("UI_CARD_OUTSOURCE"))
 	lines.append("")
 	lines.append("  %s" % game.get_outsource_info())
 	_add_info_card(lines, UITheme.COLOR_WARNING)
@@ -562,14 +785,14 @@ func _update_action_list() -> void:
 	var free_energy := game.get_free_energy()
 
 	# ── 学习 ──
-	_add_section_label("学习")
+	_add_section_label(tr("UI_SECTION_STUDY"))
 	for st in GameData.get_all_skill_types():
 		var lv: int = game.skills[st]
 		var count: int = game.weekly_study_count.get(st, 0)
 		var fatigue_hint := ""
 		if count >= GameData.STUDY_FATIGUE_THRESHOLD + game.fatigue_bonus_this_week - 1:
-			fatigue_hint = "  ⚡疲劳"
-		var label := "%s  +1XP%s" % [GameData.get_skill_name(st), fatigue_hint]
+			fatigue_hint = "  " + tr("UI_FATIGUE")
+		var label := tr("UI_STUDY_XP") % [GameData.get_skill_name(st), fatigue_hint]
 		var enabled := free_energy >= 1 and lv < GameData.MAX_SKILL_LEVEL
 		_add_action_button(label, _on_study_skill.bind(st), UITheme.CAT_STUDY, enabled, "-1AP")
 
@@ -577,9 +800,9 @@ func _update_action_list() -> void:
 	var comm_count: int = game.weekly_study_count.get("communication", 0)
 	var comm_fatigue := ""
 	if comm_count >= GameData.STUDY_FATIGUE_THRESHOLD + game.fatigue_bonus_this_week - 1:
-		comm_fatigue = "  ⚡疲劳"
+		comm_fatigue = "  " + tr("UI_FATIGUE")
 	_add_action_button(
-		"沟通  +1XP%s" % comm_fatigue,
+		tr("UI_STUDY_XP") % [GameData.get_general_skill_name(GameData.GeneralSkillType.COMMUNICATION), comm_fatigue],
 		_on_study_communication, UITheme.CAT_STUDY,
 		free_energy >= 1 and game.communication < GameData.MAX_GENERAL_SKILL_LEVEL, "-1AP")
 
@@ -587,21 +810,21 @@ func _update_action_list() -> void:
 	var int_count: int = game.weekly_study_count.get("interview_skill", 0)
 	var int_fatigue := ""
 	if int_count >= GameData.STUDY_FATIGUE_THRESHOLD + game.fatigue_bonus_this_week - 1:
-		int_fatigue = "  ⚡疲劳"
+		int_fatigue = "  " + tr("UI_FATIGUE")
 	_add_action_button(
-		"面试技巧  +1XP%s" % int_fatigue,
+		tr("UI_STUDY_XP") % [GameData.get_general_skill_name(GameData.GeneralSkillType.INTERVIEW_SKILL), int_fatigue],
 		_on_study_interview, UITheme.CAT_STUDY,
 		free_energy >= 1 and game.interview_skill < GameData.MAX_GENERAL_SKILL_LEVEL, "-1AP")
 
 	# ── 求职 ──
-	_add_section_label("求职")
-	_add_action_button("精投简历", _on_focused_apply_menu, UITheme.CAT_JOB,
+	_add_section_label(tr("UI_SECTION_JOB"))
+	_add_action_button(tr("UI_FOCUSED_APPLY"), _on_focused_apply_menu, UITheme.CAT_JOB,
 		free_energy >= 1, "-1AP")
-	_add_action_button("海投简历", _on_mass_apply, UITheme.CAT_JOB,
-		free_energy >= 1, "-1AP", "随机投递%d个岗位" % GameData.MASS_APPLY_COUNT)
+	_add_action_button(tr("UI_MASS_APPLY"), _on_mass_apply, UITheme.CAT_JOB,
+		free_energy >= 1, "-1AP", tr("UI_MASS_APPLY_TIP") % GameData.MASS_APPLY_COUNT)
 
 	# 面试
-	var faked_tag := "  ★包装" if game.resume_faked else ""
+	var faked_tag := "  " + tr("UI_FAKED_TAG") if game.resume_faked else ""
 	for lid in game.applications:
 		var app: GameData.JobApplication = game.applications[lid]
 		if app.status == GameData.ApplicationStatus.HAS_INTERVIEW:
@@ -610,23 +833,23 @@ func _update_action_list() -> void:
 			var iv_cost := game.get_interview_cost()
 			var faked_tip := ""
 			if game.resume_faked:
-				faked_tip = "包装简历生效中（技能+1），面试有30%翻车风险"
+				faked_tip = tr("UI_FAKE_ACTIVE_TIP")
 			_add_action_button(
-				"面试：%s  ≈%.0f%%%s" % [title, rate * 100, faked_tag],
+				tr("UI_INTERVIEW_FORMAT") % [title, rate * 100] + faked_tag,
 				_on_interview.bind(lid), UITheme.CAT_JOB,
 				free_energy >= iv_cost, "-%dAP" % iv_cost, faked_tip)
 
 	if not game.resume_faked:
-		_add_action_button("包装简历", _on_fake_resume, UITheme.CAT_JOB,
-			free_energy >= 2, "-2AP", "技能显示+1，但面试有30%翻车风险")
+		_add_action_button(tr("UI_FAKE_RESUME"), _on_fake_resume, UITheme.CAT_JOB,
+			free_energy >= 2, "-2AP", tr("UI_FAKE_RESUME_TIP"))
 	else:
-		_add_action_button("取消包装  ★生效中", _on_cancel_fake_resume, UITheme.CAT_JOB, true)
+		_add_action_button(tr("UI_CANCEL_FAKE"), _on_cancel_fake_resume, UITheme.CAT_JOB, true)
 
 	# ── 社交 ──
-	_add_section_label("社交")
+	_add_section_label(tr("UI_SECTION_SOCIAL"))
 	var net_gain := 2 if game.has_tool("linkedin") else 1
 	_add_action_button(
-		"人际关系  +%d" % net_gain,
+		tr("UI_NETWORKING_ACTION") % net_gain,
 		_on_networking, UITheme.CAT_SOCIAL,
 		free_energy >= 1 and game.networking_points < GameData.MAX_NETWORKING_POINTS, "-1AP")
 
@@ -634,36 +857,36 @@ func _update_action_list() -> void:
 	var proj_text: String
 	var proj_cost: String
 	if game.personal_project_done:
-		proj_text = "个人作品  ✔已完成"
+		proj_text = tr("UI_PROJECT_DONE")
 		proj_cost = ""
 	else:
-		proj_text = "个人作品  +1进度  (%d/%d)" % [
+		proj_text = tr("UI_PROJECT_PROGRESS") % [
 			game.personal_project_progress, GameData.PERSONAL_PROJECT_COST]
 		proj_cost = "-1AP"
 	_add_action_button(proj_text, _on_personal_project, UITheme.CAT_SOCIAL,
 		can_project and free_energy >= 1, proj_cost)
 
 	# ── 生存 ──
-	_add_section_label("生存")
+	_add_section_label(tr("UI_SECTION_SURVIVAL"))
 	_add_action_button(
-		"打零工·兼职  +$%s" % _format_number(game.get_gig_income(false)),
+		tr("UI_GIG_PARTTIME") % _format_number(game.get_gig_income(false)),
 		_on_gig_parttime, UITheme.CAT_SURVIVAL,
 		free_energy >= GameData.GIG_ENERGY_PARTTIME, "-3AP")
 	_add_action_button(
-		"打零工·全职  +$%s" % _format_number(game.get_gig_income(true)),
+		tr("UI_GIG_FULLTIME") % _format_number(game.get_gig_income(true)),
 		_on_gig_fulltime, UITheme.CAT_SURVIVAL,
 		free_energy >= GameData.GIG_ENERGY_FULLTIME, "-5AP")
 
 	if game.has_outsource_available():
 		var oc := game.current_outsource
 		_add_action_button(
-			"接外包·%s  +$%s" % [oc.get_level_text(), _format_number(oc.income)],
+			tr("UI_OUTSOURCE_ACTION") % [oc.get_level_text(), _format_number(oc.income)],
 			_on_take_outsource, UITheme.CAT_SURVIVAL,
 			free_energy >= oc.energy_cost, "-%dAP" % oc.energy_cost)
 
 	# ── 其他 ──
-	_add_section_label("其他")
-	_add_action_button("逛二手市场", _on_shop_menu, UITheme.CAT_OTHER,
+	_add_section_label(tr("UI_SECTION_OTHER"))
+	_add_action_button(tr("UI_SHOP"), _on_shop_menu, UITheme.CAT_OTHER,
 		free_energy >= GameData.SHOP_ENERGY_COST, "-1AP")
 
 	# Offer处理
@@ -676,20 +899,20 @@ func _update_action_list() -> void:
 				has_offers = true
 			var title := app.listing.get_display_title()
 			var accept_btn := Button.new()
-			accept_btn.text = "接受Offer：%s（$%s/周）" % [title, _format_number(app.listing.actual_salary)]
+			accept_btn.text = tr("UI_ACCEPT_OFFER") % [title, _format_number(app.listing.actual_salary)]
 			UITheme.style_gold_button(accept_btn)
 			accept_btn.pressed.connect(_on_accept_offer.bind(lid))
 			action_list.add_child(accept_btn)
 
 			var reject_btn := Button.new()
-			reject_btn.text = "拒绝Offer：%s" % title
+			reject_btn.text = tr("UI_REJECT_OFFER") % title
 			UITheme.style_danger_button(reject_btn)
 			reject_btn.pressed.connect(_on_reject_offer.bind(lid))
 			action_list.add_child(reject_btn)
 
 	if game.current_job_listing and not game.pending_quit:
 		var quit_btn := Button.new()
-		quit_btn.text = "辞职（下周生效）"
+		quit_btn.text = tr("UI_QUIT")
 		UITheme.style_danger_button(quit_btn)
 		quit_btn.pressed.connect(_on_quit)
 		action_list.add_child(quit_btn)
@@ -700,7 +923,7 @@ func _update_action_list() -> void:
 	action_list.add_child(spacer)
 
 	var settle_btn := Button.new()
-	settle_btn.text = "结 束 本 周"
+	settle_btn.text = tr("UI_END_WEEK")
 	UITheme.style_primary_button(settle_btn, 15)
 	settle_btn.custom_minimum_size = Vector2(0, 38)
 	settle_btn.pressed.connect(_on_settle_week)
@@ -792,7 +1015,7 @@ func _on_study_interview() -> void:
 func _on_focused_apply_menu() -> void:
 	_shop_mode = false
 	_company_mode = false
-	sub_menu_title.text = "[b]选择投递岗位[/b]"
+	sub_menu_title.text = "[b]%s[/b]" % tr("UI_SELECT_APPLY")
 	_populate_apply_menu()
 	sub_menu_panel.visible = true
 
@@ -863,7 +1086,7 @@ func _populate_apply_menu() -> void:
 		hint.scroll_active = false
 		hint.layout_mode = 2
 		hint.add_theme_font_size_override("normal_font_size", 13)
-		hint.text = "[color=#F59E0B]★ 简历包装生效中：技能显示+1，通过率已提升[/color]"
+		hint.text = "[color=#F59E0B]%s[/color]" % tr("UI_FAKE_APPLY_HINT")
 		sub_menu_list.add_child(hint)
 
 	# 筛选可投递岗位并计算通过率
@@ -926,9 +1149,9 @@ func _add_apply_listing_button(listing: GameData.JobListing, rate: float) -> voi
 	line1.scroll_active = false
 	line1.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line1.add_theme_font_size_override("normal_font_size", 15)
-	line1.text = "[color=#E2E8F0]%s[/color]  [color=#94A3B8]@[/color]  %s    [color=#22C55E]$%s/周[/color]" % [
-		listing.job.title, listing.company_def.name,
-		_format_number(listing.actual_salary)]
+	line1.text = "[color=#E2E8F0]%s[/color]  [color=#94A3B8]@[/color]  %s    [color=#22C55E]%s[/color]" % [
+		listing.job.get_display_title(), listing.company_def.get_display_name(),
+		tr("UI_SALARY_WEEK") % _format_number(listing.actual_salary)]
 	vbox.add_child(line1)
 
 	# 第二行：通过率（左）  技能需求（右，颜色标注）
@@ -953,7 +1176,7 @@ func _add_apply_listing_button(listing: GameData.JobListing, rate: float) -> voi
 		if game.resume_faked:
 			comm_lv += 1
 		var color := "#22C55E" if comm_lv >= listing.actual_comm_required else "#EF4444"
-		req_parts.append("[color=%s]沟通 Lv.%d[/color]" % [color, listing.actual_comm_required])
+		req_parts.append("[color=%s]%s[/color]" % [color, tr("UI_COMM_LV") % listing.actual_comm_required])
 	line2.text = "[color=%s]≈%.0f%%[/color]    %s" % [
 		rate_color, rate * 100, "  ".join(req_parts)]
 	vbox.add_child(line2)
@@ -976,7 +1199,7 @@ func _on_apply_to(listing_id: String) -> void:
 func _on_company_list_menu() -> void:
 	_shop_mode = false
 	_company_mode = true
-	sub_menu_title.text = "[b]公司列表[/b]"
+	sub_menu_title.text = "[b]%s[/b]" % tr("UI_COMPANY_LIST")
 	_populate_company_list()
 	sub_menu_panel.visible = true
 
@@ -994,10 +1217,12 @@ func _populate_company_list() -> void:
 		var listing_count := game.get_company_listing_count(company.id)
 		var scale_tag := _make_scale_tag(company.scale)
 		var btn := Button.new()
-		btn.text = "%s %s  福利：%s  经营：%s  倾向：%s  在招：%d" % [
-			scale_tag, company.name,
-			company.get_benefit_text(), company.get_status_text(),
-			company.get_preferred_skills_text(), listing_count]
+		btn.text = "%s %s  %s  %s  %s  %s" % [
+			scale_tag, company.get_display_name(),
+			tr("UI_BENEFIT_FORMAT") % company.get_benefit_text(),
+			tr("UI_STATUS_FORMAT") % company.get_status_text(),
+			tr("UI_PREF_FORMAT") % company.get_preferred_skills_text(),
+			tr("UI_HIRING_FORMAT") % listing_count]
 		UITheme.style_menu_button(btn)
 		btn.pressed.connect(_on_company_detail.bind(company))
 		sub_menu_list.add_child(btn)
@@ -1007,9 +1232,9 @@ func _populate_company_list() -> void:
 
 func _make_scale_tag(scale: GameData.CompanyScale) -> String:
 	match scale:
-		GameData.CompanyScale.BIG: return "[大厂]"
-		GameData.CompanyScale.MEDIUM: return "[中厂]"
-		GameData.CompanyScale.SMALL: return "[小厂]"
+		GameData.CompanyScale.BIG: return tr("UI_SCALE_TAG_BIG")
+		GameData.CompanyScale.MEDIUM: return tr("UI_SCALE_TAG_MED")
+		GameData.CompanyScale.SMALL: return tr("UI_SCALE_TAG_SMALL")
 		_: return ""
 
 
@@ -1017,7 +1242,7 @@ func _on_company_detail(company: GameData.CompanyDef) -> void:
 	for child in sub_menu_list.get_children():
 		child.queue_free()
 
-	sub_menu_title.text = "[b]%s 详情[/b]" % company.name
+	sub_menu_title.text = "[b]%s[/b]" % (tr("UI_COMPANY_DETAIL") % company.get_display_name())
 
 	var info := RichTextLabel.new()
 	info.bbcode_enabled = true
@@ -1028,34 +1253,34 @@ func _on_company_detail(company: GameData.CompanyDef) -> void:
 	info.add_theme_color_override("default_color", UITheme.TEXT_PRIMARY)
 
 	var lines: Array[String] = []
-	lines.append("[color=#60A5FA][b]%s[/b][/color]" % company.name)
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % company.get_display_name())
 	lines.append("")
-	lines.append("规模：%s" % company.get_scale_text())
-	lines.append("福利水平：%s（薪资倍率 ×%.2f）" % [company.get_benefit_text(), company.get_salary_multiplier()])
-	lines.append("经营状况：%s" % company.get_status_text())
-	lines.append("倾向技能：%s" % company.get_preferred_skills_text())
+	lines.append("%s: %s" % [tr("UI_LABEL_SCALE"), company.get_scale_text()])
+	lines.append("%s: %s" % [tr("UI_LABEL_BENEFIT"), tr("UI_BENEFIT_SALARY_MULT") % [company.get_benefit_text(), company.get_salary_multiplier()]])
+	lines.append("%s: %s" % [tr("UI_LABEL_STATUS"), company.get_status_text()])
+	lines.append("%s: %s" % [tr("UI_LABEL_PREF_SKILLS"), company.get_preferred_skills_text()])
 	lines.append("")
-	lines.append("[color=#60A5FA][b]当前在招岗位[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_CURRENT_OPENINGS"))
 
 	var found := false
 	for listing in game.current_listings:
 		if listing.company_def.id == company.id:
-			lines.append("  · %s  [color=#22C55E]$%s/周[/color]  需要：%s" % [
-				listing.job.title,
-				_format_number(listing.actual_salary),
-				listing.get_requirements_text()])
+			lines.append("  · %s  [color=#22C55E]%s[/color]  %s" % [
+				listing.job.get_display_title(),
+				tr("UI_SALARY_WEEK") % _format_number(listing.actual_salary),
+				tr("UI_REQ_LABEL") % listing.get_requirements_text()])
 			found = true
 	if not found:
-		lines.append("  [color=#94A3B8]暂无在招岗位[/color]")
+		lines.append("  [color=#94A3B8]%s[/color]" % tr("UI_NO_OPENINGS"))
 
 	info.text = "\n".join(lines)
 	sub_menu_list.add_child(info)
 
 	var back_btn := Button.new()
-	back_btn.text = "← 返回公司列表"
+	back_btn.text = tr("UI_BACK_COMPANY")
 	UITheme.style_menu_button(back_btn, 15)
 	back_btn.pressed.connect(func():
-		sub_menu_title.text = "[b]公司列表[/b]"
+		sub_menu_title.text = "[b]%s[/b]" % tr("UI_COMPANY_LIST")
 		_populate_company_list())
 	sub_menu_list.add_child(back_btn)
 
@@ -1072,7 +1297,7 @@ func _on_shop_menu() -> void:
 	_shop_mode = true
 	_company_mode = false
 	_replacing_tool_id = ""
-	sub_menu_title.text = "[b]二手市场[/b]  [color=#94A3B8]现金: $%s[/color]" % _format_number(game.cash)
+	sub_menu_title.text = "[b]%s[/b]  [color=#94A3B8]%s[/color]" % [tr("UI_SHOP_TITLE"), tr("UI_SHOP_CASH") % _format_number(game.cash)]
 	_populate_shop()
 	sub_menu_panel.visible = true
 
@@ -1087,9 +1312,9 @@ func _populate_shop() -> void:
 			continue
 		var cost_text := ""
 		if tdef.weekly_cost > 0:
-			cost_text = " + $%d/周" % tdef.weekly_cost
+			cost_text = " " + tr("UI_WEEKLY_COST_FORMAT") % tdef.weekly_cost
 		var label_text := "%s %s  $%d%s  %s" % [
-			tdef.icon, tdef.name, tdef.price, cost_text, tdef.description]
+			tdef.icon, tdef.get_display_name(), tdef.price, cost_text, tdef.get_display_desc()]
 		var can_buy := game.cash >= tdef.price
 		var btn := Button.new()
 		btn.text = label_text
@@ -1108,7 +1333,7 @@ func _populate_shop() -> void:
 		hint.scroll_active = false
 		hint.layout_mode = 2
 		hint.add_theme_font_size_override("normal_font_size", 13)
-		hint.text = "[color=#F59E0B]背包已满，购买新工具需要替换一个旧工具[/color]"
+		hint.text = "[color=#F59E0B]%s[/color]" % tr("UI_BAG_FULL")
 		sub_menu_list.add_child(hint)
 
 	_add_close_button()
@@ -1126,24 +1351,24 @@ func _on_replace_tool_menu(new_tool_id: String) -> void:
 		child.queue_free()
 
 	var new_def := game._find_tool_def(new_tool_id)
-	sub_menu_title.text = "[b]选择要替换的工具[/b]  [color=#94A3B8]购买 %s[/color]" % new_def.name
+	sub_menu_title.text = "[b]%s[/b]  [color=#94A3B8]%s %s[/color]" % [tr("UI_SELECT_REPLACE"), tr("UI_BUYING"), new_def.get_display_name()]
 
 	for old_id in game.owned_tools:
 		var old_def := game._find_tool_def(old_id)
 		if old_def == null:
 			continue
 		var btn := Button.new()
-		btn.text = "替换 %s %s（%s）" % [old_def.icon, old_def.name, old_def.description]
+		btn.text = "%s %s %s（%s）" % [tr("UI_REPLACE"), old_def.icon, old_def.get_display_name(), old_def.get_display_desc()]
 		UITheme.style_menu_button(btn, 15)
 		btn.pressed.connect(_on_replace_tool.bind(old_id, new_tool_id))
 		sub_menu_list.add_child(btn)
 
 	var cancel_btn := Button.new()
-	cancel_btn.text = "← 取消"
+	cancel_btn.text = tr("UI_CANCEL")
 	UITheme.style_menu_button(cancel_btn, 15)
 	cancel_btn.pressed.connect(func():
 		_replacing_tool_id = ""
-		sub_menu_title.text = "[b]二手市场[/b]  [color=#94A3B8]现金: $%s[/color]" % _format_number(game.cash)
+		sub_menu_title.text = "[b]%s[/b]  [color=#94A3B8]%s[/color]" % [tr("UI_SHOP_TITLE"), tr("UI_SHOP_CASH") % _format_number(game.cash)]
 		_populate_shop())
 	sub_menu_list.add_child(cancel_btn)
 
@@ -1184,23 +1409,23 @@ func _on_settle_week() -> void:
 
 func _show_settlement(result: GameState.WeekSettlement) -> void:
 	var lines: Array[String] = []
-	lines.append("[center][color=#60A5FA][b]第 %d 周结算[/b][/color][/center]" % (game.week - 1))
+	lines.append("[center][color=#60A5FA][b]%s[/b][/color][/center]" % (tr("UI_SETTLEMENT_TITLE") % (game.week - 1)))
 	lines.append("")
 
 	if result.salary_earned > 0:
-		lines.append("[color=#22C55E]▲ 工资收入  +$%s[/color]" % _format_number(result.salary_earned))
-	lines.append("[color=#EF4444]▼ 生活支出  -$%s[/color]" % _format_number(result.living_cost))
+		lines.append("[color=#22C55E]%s  +$%s[/color]" % [tr("UI_INCOME_SALARY"), _format_number(result.salary_earned)])
+	lines.append("[color=#EF4444]%s  -$%s[/color]" % [tr("UI_COST_LIVING"), _format_number(result.living_cost)])
 	if result.tool_cost > 0:
-		lines.append("[color=#EF4444]▼ 工具费用  -$%s[/color]" % _format_number(result.tool_cost))
+		lines.append("[color=#EF4444]%s  -$%s[/color]" % [tr("UI_COST_TOOLS"), _format_number(result.tool_cost)])
 
 	lines.append("")
 	var arrow_color := "#22C55E" if result.cash_after >= result.cash_before else "#EF4444"
-	lines.append("现金  $%s  [color=%s]→[/color]  $%s" % [
-		_format_number(result.cash_before), arrow_color, _format_number(result.cash_after)])
+	lines.append("%s  $%s  [color=%s]→[/color]  $%s" % [
+		tr("UI_CASH"), _format_number(result.cash_before), arrow_color, _format_number(result.cash_after)])
 	lines.append("")
 
 	if result.did_quit:
-		lines.append("[color=#F59E0B]你已离职[/color]")
+		lines.append("[color=#F59E0B]%s[/color]" % tr("UI_YOU_QUIT"))
 		lines.append("")
 
 	for note in result.notifications:
@@ -1208,19 +1433,19 @@ func _show_settlement(result: GameState.WeekSettlement) -> void:
 
 	if result.expired_offers.size() > 0:
 		for offer in result.expired_offers:
-			lines.append("[color=#F59E0B]⏰ Offer已过期：%s[/color]" % offer)
+			lines.append("[color=#F59E0B]%s[/color]" % (tr("UI_OFFER_EXPIRED") % offer))
 
 	if result.new_traits.size() > 0:
 		for tid in result.new_traits:
 			var tdef := game._find_trait_def(tid)
 			if tdef:
-				lines.append("[color=#FBBF24]★ 获得特质：%s — %s[/color]" % [tdef.name, tdef.effect_text])
+				lines.append("[color=#FBBF24]%s[/color]" % (tr("UI_TRAIT_GAINED") % [tdef.get_display_name(), tdef.get_display_effect()]))
 
 	if result.lost_traits.size() > 0:
 		for tid in result.lost_traits:
 			var tdef := game._find_trait_def(tid)
 			if tdef:
-				lines.append("[color=#94A3B8]☆ 失去特质：%s[/color]" % tdef.name)
+				lines.append("[color=#94A3B8]%s[/color]" % (tr("UI_TRAIT_LOST") % tdef.get_display_name()))
 
 	if result.event_name != "":
 		lines.append("")
@@ -1250,7 +1475,7 @@ func _populate_settlement_offers() -> void:
 		if app.status == GameData.ApplicationStatus.OFFER:
 			var title := app.listing.get_display_title()
 			var btn := Button.new()
-			btn.text = "接受Offer：%s（$%s/周）" % [title, _format_number(app.listing.actual_salary)]
+			btn.text = tr("UI_ACCEPT_OFFER") % [title, _format_number(app.listing.actual_salary)]
 			UITheme.style_gold_button(btn)
 			btn.pressed.connect(_on_settlement_accept_offer.bind(lid))
 			settlement_offer_box.add_child(btn)
@@ -1278,57 +1503,59 @@ func _show_ending() -> void:
 	lines.append("")
 
 	# 最终状态
-	lines.append("[color=#60A5FA][b]最终状态[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_ENDING_FINAL"))
 	if game.current_job_listing:
-		lines.append("  在职：%s @ %s  周薪 [color=#22C55E]$%s[/color]" % [
-			game.current_job_listing.job.title,
-			game.current_job_listing.company_def.name,
+		lines.append("  %s  %s [color=#22C55E]$%s[/color]" % [
+			tr("UI_ENDING_EMPLOYED") % [
+				game.current_job_listing.job.get_display_title(),
+				game.current_job_listing.company_def.get_display_name()],
+			tr("UI_WEEKLY_SALARY"),
 			_format_number(game.current_job_listing.actual_salary)])
 	else:
-		lines.append("  [color=#94A3B8]未就业[/color]")
-	lines.append("  剩余现金：$%s" % _format_number(game.cash))
+		lines.append("  [color=#94A3B8]%s[/color]" % tr("UI_UNEMPLOYED"))
+	lines.append("  %s: $%s" % [tr("UI_ENDING_CASH"), _format_number(game.cash)])
 	lines.append("")
 
 	# 预估年收入
-	lines.append("[color=#60A5FA][b]预估年收入[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_ENDING_PROJECTED"))
 	if game.current_job_listing:
 		var weekly_net := game.current_job_listing.actual_salary - GameData.WEEKLY_LIVING_COST
-		lines.append("  周薪 $%s - 生活费 $%s = 每周净收入 $%s" % [
+		lines.append("  %s" % (tr("UI_ENDING_WEEKLY_NET") % [
 			_format_number(game.current_job_listing.actual_salary),
 			_format_number(GameData.WEEKLY_LIVING_COST),
-			_format_number(weekly_net)])
-		lines.append("  年净收入：$%s × 52 = [color=#22C55E]$%s[/color]" % [
-			_format_number(weekly_net), _format_number(weekly_net * 52)])
-		lines.append("  加上剩余现金：[color=#FBBF24]$%s[/color]" % _format_number(projected))
+			_format_number(weekly_net)]))
+		lines.append("  %s: $%s × 52 = [color=#22C55E]$%s[/color]" % [
+			tr("UI_ENDING_ANNUAL"), _format_number(weekly_net), _format_number(weekly_net * 52)])
+		lines.append("  %s: [color=#FBBF24]$%s[/color]" % [tr("UI_ENDING_PLUS_CASH"), _format_number(projected)])
 	else:
-		lines.append("  预估收入：$%s" % _format_number(projected))
+		lines.append("  %s: $%s" % [tr("UI_ENDING_PROJECTED_INCOME"), _format_number(projected)])
 	lines.append("")
 
 	# 成就统计
-	lines.append("[color=#60A5FA][b]成就[/b][/color]")
+	lines.append("[color=#60A5FA][b]%s[/b][/color]" % tr("UI_ENDING_ACHIEVEMENTS"))
 	var best_skill_name := ""
 	var best_skill_lv := 0
 	for st in GameData.get_all_skill_types():
 		if game.skills[st] > best_skill_lv:
 			best_skill_lv = game.skills[st]
 			best_skill_name = GameData.get_skill_name(st)
-	lines.append("  技能最高：%s Lv.%d" % [best_skill_name, best_skill_lv])
-	lines.append("  工作经验：%d周    外包完成：%d次" % [game.work_experience, game.outsource_count])
-	lines.append("  投递：%d  面试：%d  Offer：%d  被拒：%d" % [
+	lines.append("  %s: %s Lv.%d" % [tr("UI_ENDING_BEST_SKILL"), best_skill_name, best_skill_lv])
+	lines.append("  %s" % (tr("UI_ENDING_WORK_EXP_FMT") % [game.work_experience, game.outsource_count]))
+	lines.append("  %s" % (tr("UI_ENDING_STATS") % [
 		game.stats_total_applications, game.stats_total_interviews,
-		game.stats_total_offers, game.stats_total_rejections])
+		game.stats_total_offers, game.stats_total_rejections]))
 	if game.stats_highest_offer_salary > 0:
-		lines.append("  最高薪Offer：[color=#FBBF24]$%s/周[/color]" % _format_number(game.stats_highest_offer_salary))
-	lines.append("  零工/外包总收入：$%s" % _format_number(game.stats_total_gig_income))
-	lines.append("  学习总次数：%d    人际关系：%d" % [game.stats_total_study_count, game.networking_points])
+		lines.append("  %s: [color=#FBBF24]%s[/color]" % [tr("UI_ENDING_BEST_OFFER"), tr("UI_SALARY_WEEK") % _format_number(game.stats_highest_offer_salary)])
+	lines.append("  %s: $%s" % [tr("UI_ENDING_GIG_TOTAL"), _format_number(game.stats_total_gig_income)])
+	lines.append("  %s" % (tr("UI_ENDING_STUDY_TOTAL") % [game.stats_total_study_count, game.networking_points]))
 
 	if game.active_traits.size() > 0:
 		var trait_names: Array[String] = []
 		for tid in game.active_traits:
 			var tdef := game._find_trait_def(tid)
 			if tdef:
-				trait_names.append(tdef.name)
-		lines.append("  获得特质：[color=#FBBF24]%s[/color]" % "、".join(trait_names))
+				trait_names.append(tdef.get_display_name())
+		lines.append("  %s: [color=#FBBF24]%s[/color]" % [tr("UI_ENDING_TRAITS"), TranslationServer.translate("SEP_LIST").join(trait_names)])
 
 	lines.append("")
 	lines.append("[center][i][color=#94A3B8]\"%s\"[/color][/i][/center]" % rank_desc)
@@ -1338,13 +1565,44 @@ func _show_ending() -> void:
 
 
 func _on_restart() -> void:
+	_return_to_title()
+
+
+func _on_header_restart() -> void:
+	_return_to_title()
+
+
+func _return_to_title() -> void:
 	ending_panel.visible = false
 	settlement_panel.visible = false
 	sub_menu_panel.visible = false
 	skill_select_panel.visible = false
+	intro_panel.visible = false
+	get_node("MainLayout").visible = false
 	game = GameState.new()
-	intro_panel.visible = true
-	_show_intro()
+	title_panel.visible = true
+	_update_title_text()
+
+
+func _on_lang_toggle() -> void:
+	if Locale.is_english():
+		Locale.set_locale("zh")
+	else:
+		Locale.set_locale("en")
+	_apply_localized_text()
+	_lang_button.text = tr("UI_LANG_TOGGLE")
+	company_button.text = tr("UI_COMPANY_LIST")
+	if title_panel.visible:
+		_update_title_text()
+	elif intro_panel.visible:
+		var stories := _get_intro_stories()
+		intro_label.text = stories[randi() % stories.size()]
+	elif skill_select_panel.visible:
+		_setup_skill_select()
+	elif ending_panel.visible or settlement_panel.visible:
+		pass
+	else:
+		_refresh_ui()
 
 
 # ══════════════════════════════════════════
@@ -1357,7 +1615,7 @@ func _add_close_button() -> void:
 	sub_menu_list.add_child(spacer)
 
 	var btn := Button.new()
-	btn.text = "关闭"
+	btn.text = tr("UI_CLOSE")
 	UITheme.style_primary_button(btn, 15)
 	btn.custom_minimum_size = Vector2(0, 38)
 	btn.pressed.connect(func(): sub_menu_panel.visible = false)

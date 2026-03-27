@@ -2,6 +2,13 @@
 class_name GameData
 
 # ══════════════════════════════════════════
+#  翻译辅助
+# ══════════════════════════════════════════
+
+static func _t(key: String) -> String:
+	return TranslationServer.translate(key)
+
+# ══════════════════════════════════════════
 #  常量
 # ══════════════════════════════════════════
 
@@ -10,68 +17,55 @@ const INITIAL_CASH := 3500
 const WEEKLY_LIVING_COST := 500
 const ENERGY_PER_WEEK := 7
 const MAX_SKILL_LEVEL := 10
-const MAX_GENERAL_SKILL_LEVEL := 4   # 沟通/面试技巧上限
+const MAX_GENERAL_SKILL_LEVEL := 4
 const OFFER_VALIDITY_WEEKS := 3
 
-# 零工
 const GIG_INCOME_PARTTIME := 280
 const GIG_INCOME_FULLTIME := 520
 const GIG_ENERGY_PARTTIME := 3
 const GIG_ENERGY_FULLTIME := 5
 
-# 市场风向 & 事件
-const MARKET_WIND_CYCLE := 3          # 每3周判定一次新风向
-const MARKET_WIND_CHANCE := 0.50      # 50%概率产生风向
-const MARKET_EVENT_CHANCE := 0.25     # 每周25%概率产生市场事件
+const MARKET_WIND_CYCLE := 3
+const MARKET_WIND_CHANCE := 0.50
+const MARKET_EVENT_CHANCE := 0.25
 
-# 学习疲劳：同一技能每周第4次起XP减半
 const STUDY_FATIGUE_THRESHOLD := 4
 
-# 人际关系
 const MAX_NETWORKING_POINTS := 10
 
-# 个人作品
-const PERSONAL_PROJECT_COST := 5       # 完成需累计5点行动力
-const PERSONAL_PROJECT_MAX_PER_WEEK := 3  # 每周最多投入3次
-const PERSONAL_PROJECT_MIN_SKILL := 5  # 需要至少一个专业技能>4 (即>=5)
+const PERSONAL_PROJECT_COST := 5
+const PERSONAL_PROJECT_MAX_PER_WEEK := 3
+const PERSONAL_PROJECT_MIN_SKILL := 5
 const PERSONAL_PROJECT_RESUME_BONUS := 0.15
 const PERSONAL_PROJECT_INTERVIEW_BONUS := 0.10
 
-# 外包
 const OUTSOURCE_BASE_REFRESH_CHANCE := 0.30
 const OUTSOURCE_REFRESH_PER_COMPLETION := 0.05
 const OUTSOURCE_REFRESH_MAX := 0.60
-const OUTSOURCE_FAIL_CHANCE := 0.15   # 刚好满足门槛时失败概率
+const OUTSOURCE_FAIL_CHANCE := 0.15
 
-# 包装简历
-const RESUME_FAKE_CATCH_CHANCE := 0.30  # 面试被拆穿概率
+const RESUME_FAKE_CATCH_CHANCE := 0.30
 
-# 内推
 const REFERRAL_BASE_CHANCE := 0.05
 const REFERRAL_NETWORKING_MULT := 0.3
 const REFERRAL_RESUME_MULT := 1.5
 
-# 工具系统 (V3保留)
 const MAX_TOOLS := 3
 const SHOP_DISPLAY_COUNT := 3
 const SHOP_ENERGY_COST := 1
 
-# 起始技能方向特色加成
-const SKILL_BONUS_BACKEND_SALARY := 0.10       # 后端：相关岗位薪资+10%
-const SKILL_BONUS_FRONTEND_INTERVIEW := 0.08   # 前端：面试通过率+8%
-const SKILL_BONUS_ALGORITHM_BIGCO := 0.15      # 算法：大厂简历通过率+15%
-const SKILL_BONUS_DATA_OUTSOURCE := 0.15       # 数据工程：外包刷新率+15%
-const SKILL_BONUS_DATA_OUTSOURCE_INCOME := 0.20 # 数据工程：外包收入+20%
-const SKILL_BONUS_INFRA_INTERVIEW_COST := 1    # 基础设施：面试消耗1AP（原2AP）
+const SKILL_BONUS_BACKEND_SALARY := 0.10
+const SKILL_BONUS_FRONTEND_INTERVIEW := 0.08
+const SKILL_BONUS_ALGORITHM_BIGCO := 0.15
+const SKILL_BONUS_DATA_OUTSOURCE := 0.15
+const SKILL_BONUS_DATA_OUTSOURCE_INCOME := 0.20
+const SKILL_BONUS_INFRA_INTERVIEW_COST := 1
 
-# 海投
-const MASS_APPLY_COUNT := 5           # 海投随机选5个岗位
+const MASS_APPLY_COUNT := 5
 
-# 岗位职级分布 — 前半程 (week 1-6)
 const TIER_CHANCE_JUNIOR_EARLY := 0.60
 const TIER_CHANCE_MID_EARLY := 0.30
 const TIER_CHANCE_SENIOR_EARLY := 0.10
-# 岗位职级分布 — 后半程 (week 7-12)
 const TIER_CHANCE_JUNIOR_LATE := 0.35
 const TIER_CHANCE_MID_LATE := 0.40
 const TIER_CHANCE_SENIOR_LATE := 0.25
@@ -80,22 +74,19 @@ const TIER_CHANCE_SENIOR_LATE := 0.25
 #  枚举
 # ══════════════════════════════════════════
 
-# 专业技能 (5个)
 enum SkillType {
-	BACKEND,         # 后端开发
-	FRONTEND,        # 前端开发
-	ALGORITHM,       # 算法
-	DATA_ENGINEERING,# 数据工程
-	INFRASTRUCTURE,  # 基础设施
+	BACKEND,
+	FRONTEND,
+	ALGORITHM,
+	DATA_ENGINEERING,
+	INFRASTRUCTURE,
 }
 
-# 通用/辅助技能
 enum GeneralSkillType {
-	COMMUNICATION,   # 沟通
-	INTERVIEW_SKILL, # 面试技巧
+	COMMUNICATION,
+	INTERVIEW_SKILL,
 }
 
-# 求职状态
 enum ApplicationStatus {
 	NONE,
 	APPLIED,
@@ -105,54 +96,42 @@ enum ApplicationStatus {
 	REJECTED,
 }
 
-# 公司规模
 enum CompanyScale { BIG, MEDIUM, SMALL }
-
-# 福利水平
 enum BenefitLevel { HIGH, MEDIUM, NORMAL }
-
-# 经营状况
 enum BusinessStatus { GOOD, STABLE, STRUGGLING }
-
-# 市场风向类型
 enum MarketWindType { NONE, HOT, SHRINK }
-
-# 岗位职级
 enum JobTier { JUNIOR, MID, SENIOR }
-
-# 外包等级
 enum OutsourceLevel { MID_OUTSOURCE, HIGH_OUTSOURCE }
 
 # ══════════════════════════════════════════
 #  技能相关工具函数
 # ══════════════════════════════════════════
 
-# 升到第 N 级需要 N 点 XP (设计文档: 学习一次+1 XP，升到第N级需要N点XP)
 static func xp_needed_for_level(target_level: int) -> int:
 	return target_level
 
 static func get_skill_name(skill: SkillType) -> String:
 	match skill:
-		SkillType.BACKEND: return "后端开发"
-		SkillType.FRONTEND: return "前端开发"
-		SkillType.ALGORITHM: return "算法"
-		SkillType.DATA_ENGINEERING: return "数据工程"
-		SkillType.INFRASTRUCTURE: return "基础设施"
-		_: return "未知"
+		SkillType.BACKEND: return _t("SKILL_BACKEND")
+		SkillType.FRONTEND: return _t("SKILL_FRONTEND")
+		SkillType.ALGORITHM: return _t("SKILL_ALGORITHM")
+		SkillType.DATA_ENGINEERING: return _t("SKILL_DATA_ENGINEERING")
+		SkillType.INFRASTRUCTURE: return _t("SKILL_INFRASTRUCTURE")
+		_: return _t("SKILL_UNKNOWN")
 
 static func get_general_skill_name(skill: GeneralSkillType) -> String:
 	match skill:
-		GeneralSkillType.COMMUNICATION: return "沟通"
-		GeneralSkillType.INTERVIEW_SKILL: return "面试技巧"
-		_: return "未知"
+		GeneralSkillType.COMMUNICATION: return _t("GSKILL_COMMUNICATION")
+		GeneralSkillType.INTERVIEW_SKILL: return _t("GSKILL_INTERVIEW")
+		_: return _t("SKILL_UNKNOWN")
 
 static func get_skill_bonus_description(skill: SkillType) -> String:
 	match skill:
-		SkillType.BACKEND: return "后端相关岗位薪资+10%"
-		SkillType.FRONTEND: return "面试通过率+8%"
-		SkillType.ALGORITHM: return "大厂简历通过率+15%"
-		SkillType.DATA_ENGINEERING: return "外包刷新率+15%，外包收入+20%"
-		SkillType.INFRASTRUCTURE: return "面试消耗1AP（原2AP）"
+		SkillType.BACKEND: return _t("BONUS_BACKEND")
+		SkillType.FRONTEND: return _t("BONUS_FRONTEND")
+		SkillType.ALGORITHM: return _t("BONUS_ALGORITHM")
+		SkillType.DATA_ENGINEERING: return _t("BONUS_DATA")
+		SkillType.INFRASTRUCTURE: return _t("BONUS_INFRA")
 		_: return ""
 
 static func get_all_skill_types() -> Array:
@@ -178,7 +157,7 @@ class CompanyDef:
 	var job_slots_max: int
 	var job_generate_chance: float
 	var job_disappear_chance: float
-	var preferred_skills: Array  # Array[SkillType], 2个倾向技能
+	var preferred_skills: Array
 
 	func _init(p_id: String, p_name: String, p_scale: CompanyScale,
 			p_benefit: BenefitLevel, p_status: BusinessStatus,
@@ -195,6 +174,9 @@ class CompanyDef:
 		job_disappear_chance = p_disappear
 		preferred_skills = p_skills
 
+	func get_display_name() -> String:
+		return TranslationServer.translate("COMPANY_" + id)
+
 	func get_salary_multiplier() -> float:
 		match benefit_level:
 			BenefitLevel.HIGH: return 1.15
@@ -203,32 +185,31 @@ class CompanyDef:
 
 	func get_scale_text() -> String:
 		match scale:
-			CompanyScale.BIG: return "大厂"
-			CompanyScale.MEDIUM: return "中厂"
-			_: return "小厂"
+			CompanyScale.BIG: return TranslationServer.translate("SCALE_BIG")
+			CompanyScale.MEDIUM: return TranslationServer.translate("SCALE_MEDIUM")
+			_: return TranslationServer.translate("SCALE_SMALL")
 
 	func get_benefit_text() -> String:
 		match benefit_level:
-			BenefitLevel.HIGH: return "优厚"
-			BenefitLevel.MEDIUM: return "中等"
-			_: return "普通"
+			BenefitLevel.HIGH: return TranslationServer.translate("BENEFIT_HIGH")
+			BenefitLevel.MEDIUM: return TranslationServer.translate("BENEFIT_MEDIUM")
+			_: return TranslationServer.translate("BENEFIT_NORMAL")
 
 	func get_status_text() -> String:
 		match business_status:
-			BusinessStatus.GOOD: return "良好"
-			BusinessStatus.STABLE: return "维持"
-			_: return "艰难"
+			BusinessStatus.GOOD: return TranslationServer.translate("STATUS_GOOD")
+			BusinessStatus.STABLE: return TranslationServer.translate("STATUS_STABLE")
+			_: return TranslationServer.translate("STATUS_STRUGGLING")
 
 	func get_preferred_skills_text() -> String:
 		var names := []
 		for s in preferred_skills:
 			names.append(GameData.get_skill_name(s))
-		return "、".join(names)
+		return TranslationServer.translate("SEP_LIST").join(names)
 
 
 static func get_all_companies() -> Array[CompanyDef]:
 	return [
-		# 大厂 ×2
 		CompanyDef.new("bytedance", "字节飞扬", CompanyScale.BIG,
 			BenefitLevel.HIGH, BusinessStatus.GOOD,
 			2, 5, 0.70, 0.10,
@@ -237,7 +218,6 @@ static func get_all_companies() -> Array[CompanyDef]:
 			BenefitLevel.HIGH, BusinessStatus.GOOD,
 			2, 4, 0.65, 0.12,
 			[SkillType.BACKEND, SkillType.INFRASTRUCTURE]),
-		# 中厂 ×3
 		CompanyDef.new("cybertech", "赛博科技", CompanyScale.MEDIUM,
 			BenefitLevel.MEDIUM, BusinessStatus.GOOD,
 			2, 4, 0.70, 0.15,
@@ -250,7 +230,6 @@ static func get_all_companies() -> Array[CompanyDef]:
 			BenefitLevel.NORMAL, BusinessStatus.STABLE,
 			2, 4, 0.65, 0.20,
 			[SkillType.ALGORITHM, SkillType.DATA_ENGINEERING]),
-		# 小厂 ×3
 		CompanyDef.new("stackflow", "栈溢出", CompanyScale.SMALL,
 			BenefitLevel.NORMAL, BusinessStatus.STABLE,
 			1, 3, 0.75, 0.20,
@@ -287,9 +266,13 @@ class MarketWindDef:
 		gen_chance_modifier = p_mod
 		description = p_desc
 
+	func get_display_name() -> String:
+		return name
 
-# 风向从5个专业技能中随机选一个，类型为HOT(+20%)或SHRINK(-15%)
-# 不再预定义列表，改为动态生成
+	func get_display_desc() -> String:
+		return description
+
+
 static func generate_random_wind() -> MarketWindDef:
 	var skills := get_all_skill_types()
 	var skill: SkillType = skills[randi() % skills.size()]
@@ -297,14 +280,16 @@ static func generate_random_wind() -> MarketWindDef:
 	var is_hot := randf() < 0.5
 	if is_hot:
 		return MarketWindDef.new(
-			"hot_%s" % str(skill), "%s需求激增" % skill_name,
+			"hot_%s" % str(skill),
+			_t("WIND_HOT_NAME") % skill_name,
 			MarketWindType.HOT, skill, 0.20,
-			"各大公司纷纷扩招%s方向工程师" % skill_name)
+			_t("WIND_HOT_DESC") % skill_name)
 	else:
 		return MarketWindDef.new(
-			"shrink_%s" % str(skill), "%s岗位收缩" % skill_name,
+			"shrink_%s" % str(skill),
+			_t("WIND_SHRINK_NAME") % skill_name,
 			MarketWindType.SHRINK, skill, -0.15,
-			"%s方向岗位需求下降" % skill_name)
+			_t("WIND_SHRINK_DESC") % skill_name)
 
 
 # ══════════════════════════════════════════
@@ -325,6 +310,12 @@ class MarketEventDef:
 		description = p_desc
 		duration = p_duration
 		effect_tag = p_tag
+
+	func get_display_name() -> String:
+		return TranslationServer.translate("EVENT_" + id)
+
+	func get_display_desc() -> String:
+		return TranslationServer.translate("EVENT_DESC_" + id)
 
 
 static func get_all_market_events() -> Array[MarketEventDef]:
@@ -364,7 +355,7 @@ class JobDef:
 	var id: String
 	var title: String
 	var tier: JobTier
-	var skill_requirements: Array  # Array[SkillRequirement]
+	var skill_requirements: Array
 	var communication_required: int
 	var base_salary: int
 	var energy_cost: int
@@ -379,11 +370,14 @@ class JobDef:
 		base_salary = p_salary
 		energy_cost = p_energy
 
+	func get_display_title() -> String:
+		return TranslationServer.translate("JOB_" + id)
+
 	func get_tier_text() -> String:
 		match tier:
-			JobTier.JUNIOR: return "初级"
-			JobTier.MID: return "中级"
-			JobTier.SENIOR: return "高级"
+			JobTier.JUNIOR: return TranslationServer.translate("TIER_JUNIOR")
+			JobTier.MID: return TranslationServer.translate("TIER_MID")
+			JobTier.SENIOR: return TranslationServer.translate("TIER_SENIOR")
 			_: return ""
 
 	func get_primary_skills() -> Array:
@@ -393,10 +387,8 @@ class JobDef:
 		return skills
 
 
-# 所有岗位模板
 static func get_all_jobs() -> Array[JobDef]:
 	return [
-		# ── 初级岗位 (1个专业技能, 占4AP) ──
 		JobDef.new("jr_backend", "初级后端开发", JobTier.JUNIOR,
 			[SkillRequirement.new(SkillType.BACKEND, 3)], 0, 750, 4),
 		JobDef.new("jr_frontend", "初级前端开发", JobTier.JUNIOR,
@@ -407,8 +399,6 @@ static func get_all_jobs() -> Array[JobDef]:
 			[SkillRequirement.new(SkillType.INFRASTRUCTURE, 3)], 1, 730, 4),
 		JobDef.new("jr_algo", "初级算法工程师", JobTier.JUNIOR,
 			[SkillRequirement.new(SkillType.ALGORITHM, 4)], 0, 850, 4),
-
-		# ── 中级岗位 (1-2个专业技能, 占5AP) ──
 		JobDef.new("mid_fullstack", "全栈开发", JobTier.MID,
 			[SkillRequirement.new(SkillType.FRONTEND, 4),
 			 SkillRequirement.new(SkillType.BACKEND, 3)], 2, 1100, 5),
@@ -426,8 +416,6 @@ static func get_all_jobs() -> Array[JobDef]:
 			 SkillRequirement.new(SkillType.INFRASTRUCTURE, 3)], 2, 1050, 5),
 		JobDef.new("mid_frontend", "中级前端工程师", JobTier.MID,
 			[SkillRequirement.new(SkillType.FRONTEND, 5)], 3, 1000, 5),
-
-		# ── 高级岗位 (2个专业技能, 占5AP) ──
 		JobDef.new("sr_fullstack", "高级全栈架构师", JobTier.SENIOR,
 			[SkillRequirement.new(SkillType.FRONTEND, 6),
 			 SkillRequirement.new(SkillType.BACKEND, 5)], 4, 1700, 5),
@@ -446,7 +434,6 @@ static func get_all_jobs() -> Array[JobDef]:
 	]
 
 
-# 根据公司倾向技能和职级筛选匹配的岗位模板
 static func get_matching_jobs(preferred_skills: Array, tier: JobTier) -> Array[JobDef]:
 	var all_jobs := get_all_jobs()
 	var matched: Array[JobDef] = []
@@ -473,7 +460,7 @@ class JobListing:
 	var job: JobDef
 	var company_def: CompanyDef
 	var actual_salary: int
-	var actual_skill_requirements: Array  # Array[SkillRequirement] 实际需求
+	var actual_skill_requirements: Array
 	var actual_comm_required: int
 	var weeks_alive: int = 0
 
@@ -487,18 +474,18 @@ class JobListing:
 		actual_comm_required = p_comm
 
 	func get_display_title() -> String:
-		return "%s @ %s" % [job.title, company_def.name]
+		return "%s @ %s" % [job.get_display_title(), company_def.get_display_name()]
 
 	func get_salary_text() -> String:
-		return "$%s/周" % _format_number(actual_salary)
+		return TranslationServer.translate("SALARY_FORMAT") % _format_number(actual_salary)
 
 	func get_requirements_text() -> String:
 		var parts := []
 		for req in actual_skill_requirements:
 			parts.append("%s Lv.%d" % [GameData.get_skill_name(req.skill), req.level])
 		if actual_comm_required > 0:
-			parts.append("沟通 Lv.%d" % actual_comm_required)
-		return "、".join(parts)
+			parts.append("%s Lv.%d" % [TranslationServer.translate("GSKILL_COMMUNICATION"), actual_comm_required])
+		return TranslationServer.translate("SEP_LIST").join(parts)
 
 	static func _format_number(n: int) -> String:
 		var s := str(abs(n))
@@ -520,8 +507,8 @@ class JobApplication:
 	var listing: JobListing
 	var status: ApplicationStatus
 	var offer_weeks_left: int
-	var is_referral: bool        # 是否内推
-	var is_mass_apply: bool      # 是否海投
+	var is_referral: bool
+	var is_mass_apply: bool
 
 	func _init(p_listing: JobListing, p_referral: bool = false,
 			p_mass: bool = false) -> void:
@@ -539,15 +526,14 @@ class JobApplication:
 class OutsourceOpportunity:
 	var level: OutsourceLevel
 	var required_skill: SkillType
-	var energy_cost: int       # 随机2-3
-	var income: int            # 根据等级和行动力
+	var energy_cost: int
+	var income: int
 
 	func _init(p_level: OutsourceLevel, p_skill: SkillType,
 			p_energy: int) -> void:
 		level = p_level
 		required_skill = p_skill
 		energy_cost = p_energy
-		# 收入由等级和行动力决定
 		if level == OutsourceLevel.MID_OUTSOURCE:
 			income = 350 if p_energy == 2 else 500
 		else:
@@ -555,9 +541,9 @@ class OutsourceOpportunity:
 
 	func get_level_text() -> String:
 		match level:
-			OutsourceLevel.MID_OUTSOURCE: return "中级外包"
-			OutsourceLevel.HIGH_OUTSOURCE: return "高级外包"
-			_: return "外包"
+			OutsourceLevel.MID_OUTSOURCE: return TranslationServer.translate("OUTSOURCE_MID")
+			OutsourceLevel.HIGH_OUTSOURCE: return TranslationServer.translate("OUTSOURCE_HIGH")
+			_: return TranslationServer.translate("OUTSOURCE_GENERIC")
 
 	func get_min_skill_level() -> int:
 		match level:
@@ -567,7 +553,7 @@ class OutsourceOpportunity:
 
 
 # ══════════════════════════════════════════
-#  工具定义 (V3框架保留, V4内容调整)
+#  工具定义
 # ══════════════════════════════════════════
 
 class ToolDef:
@@ -589,17 +575,24 @@ class ToolDef:
 		description = p_desc
 		hint = p_hint
 
+	func get_display_name() -> String:
+		return TranslationServer.translate("TOOL_NAME_" + id)
+
+	func get_display_desc() -> String:
+		return TranslationServer.translate("TOOL_DESC_" + id)
+
+	func get_display_hint() -> String:
+		return TranslationServer.translate("TOOL_HINT_" + id)
+
 
 static func get_all_tools() -> Array[ToolDef]:
 	return [
-		# 生产力工具
 		ToolDef.new("mech_keyboard", "机械键盘", "⌨", 400, 0,
 			"所有学习行动XP+0.5（每周前2次有效）", "适合：稳定成长路线"),
 		ToolDef.new("headphones", "降噪耳机", "🎧", 350, 0,
 			"学习不受负面事件影响", "适合：防守型玩家"),
 		ToolDef.new("ipad", "二手iPad", "📱", 500, 0,
 			"在职时每周自动+0.5XP到随机技能", "适合：先就业再择业"),
-		# 经济工具
 		ToolDef.new("thinkpad", "二手ThinkPad", "💻", 500, 0,
 			"外包成功率+20%，外包收入+$100", "适合：外包流"),
 		ToolDef.new("coffee_machine", "咖啡机", "☕", 250, 0,
@@ -608,7 +601,6 @@ static func get_all_tools() -> Array[ToolDef]:
 			"所有简历通过率+5%", "适合：万金油选择"),
 		ToolDef.new("zhishixingqiu", "知识星球会员", "🌐", 150, 20,
 			"外包刷新概率+15%，外包收入+$80", "适合：外包流"),
-		# 社交工具
 		ToolDef.new("nice_shirt", "得体的衬衫", "👔", 300, 0,
 			"面试通过率+8%", "适合：面试冲刺"),
 		ToolDef.new("linkedin", "LinkedIn会员", "🔗", 200, 40,
@@ -619,13 +611,13 @@ static func get_all_tools() -> Array[ToolDef]:
 
 
 # ══════════════════════════════════════════
-#  特质定义 (V4调整)
+#  特质定义
 # ══════════════════════════════════════════
 
 class TraitDef:
 	var id: String
 	var name: String
-	var category: String        # growth / job / survival / social
+	var category: String
 	var condition_text: String
 	var effect_text: String
 	var side_effect_text: String
@@ -642,10 +634,23 @@ class TraitDef:
 		side_effect_text = p_side
 		is_conditional = p_conditional
 
+	func get_display_name() -> String:
+		return TranslationServer.translate("TRAIT_NAME_" + id)
+
+	func get_display_effect() -> String:
+		return TranslationServer.translate("TRAIT_EFFECT_" + id)
+
+	func get_display_condition() -> String:
+		return TranslationServer.translate("TRAIT_COND_" + id)
+
+	func get_display_side_effect() -> String:
+		if side_effect_text.is_empty():
+			return ""
+		return TranslationServer.translate("TRAIT_SIDE_" + id)
+
 
 static func get_all_traits() -> Array[TraitDef]:
 	return [
-		# 成长型
 		TraitDef.new("juanwang", "卷王", "growth",
 			"连续3周每周学习≥4次（任意技能组合）", "所有学习XP+0.5",
 			"「突发低烧」概率翻倍"),
@@ -653,14 +658,12 @@ static func get_all_traits() -> Array[TraitDef]:
 			"任一专业技能0→5耗时≤4周", "该技能后续升级XP需求-1（最低1）"),
 		TraitDef.new("duomian", "多面手", "growth",
 			"3个不同专业技能≥3", "中级岗位面试通过率+10%"),
-		# 求职型
 		TraitDef.new("mianba", "面霸", "job",
 			"累计通过3次面试", "面试基础率+10%"),
 		TraitDef.new("haiwang", "海王", "job",
 			"累计2周使用海投", "海投随机匹配质量提升（至少1个匹配最高技能方向）"),
 		TraitDef.new("negotiator", "谈判专家", "job",
 			"拒绝Offer后拿到更高薪Offer", "所有Offer薪资+10%"),
-		# 生存型
 		TraitDef.new("conservative", "细水长流", "survival",
 			"存款连续4周>$3,000", "每周生活费-$50"),
 		TraitDef.new("slasher", "斜杠青年", "survival",
@@ -668,7 +671,6 @@ static func get_all_traits() -> Array[TraitDef]:
 		TraitDef.new("desperate", "背水一战", "survival",
 			"现金低于$500", "所有行动效果+20%",
 			"现金>$1,500后消失", true),
-		# 社交型
 		TraitDef.new("social_butterfly", "社牛", "social",
 			"人际关系≥7", "零工/外包+30%，面试通过率+5%"),
 		TraitDef.new("insider", "圈内人", "social",
@@ -699,20 +701,20 @@ static func get_ending_rank(projected_income: int, game_over: bool) -> EndingRan
 
 static func get_ending_name(rank: EndingRank) -> String:
 	match rank:
-		EndingRank.S: return "人生赢家"
-		EndingRank.A: return "稳步上升"
-		EndingRank.B: return "站稳脚跟"
-		EndingRank.C: return "艰难求生"
-		EndingRank.F: return "Game Over"
+		EndingRank.S: return _t("ENDING_S")
+		EndingRank.A: return _t("ENDING_A")
+		EndingRank.B: return _t("ENDING_B")
+		EndingRank.C: return _t("ENDING_C")
+		EndingRank.F: return _t("ENDING_F")
 		_: return ""
 
 static func get_ending_description(rank: EndingRank) -> String:
 	match rank:
-		EndingRank.S: return "大厂高级岗，年薪百万不是梦。你不仅上岸了，还上了最好的岸。"
-		EndingRank.A: return "中级岗位，收入不错，还有成长空间。这个起点，不亏。"
-		EndingRank.B: return "虽然不是理想工作，但至少有工资发。先活下来，再说别的。"
-		EndingRank.C: return "勉强没饿死，但前路漫漫。也许下次会更好。"
-		EndingRank.F: return "积蓄耗尽，你不得不回老家了……"
+		EndingRank.S: return _t("ENDING_DESC_S")
+		EndingRank.A: return _t("ENDING_DESC_A")
+		EndingRank.B: return _t("ENDING_DESC_B")
+		EndingRank.C: return _t("ENDING_DESC_C")
+		EndingRank.F: return _t("ENDING_DESC_F")
 		_: return ""
 
 static func get_rank_letter(rank: EndingRank) -> String:

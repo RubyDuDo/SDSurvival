@@ -11,9 +11,13 @@ config_version=5
 [application]
 
 config/name="OfferNotFound"
-config/description="程序员生存游戏 - 原型版本"
+config/description="Programmer Survival Game"
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.4")
+
+[autoload]
+
+Locale="*res://scripts/locale.gd"
 
 [display]
 

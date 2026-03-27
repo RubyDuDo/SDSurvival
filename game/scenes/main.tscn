@@ -21,6 +21,7 @@ grow_vertical = 2
 color = Color(0.039, 0.055, 0.102, 1)
 
 [node name="MainLayout" type="MarginContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -86,7 +87,6 @@ scroll_active = false
 unique_name_in_owner = true
 custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-text = "公司列表"
 
 [node name="ContentHBox" type="HBoxContainer" parent="MainLayout/VBox"]
 layout_mode = 2
@@ -115,7 +115,6 @@ layout_mode = 2
 theme_override_colors/default_color = Color(0.376, 0.647, 0.98, 1)
 theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
-text = "[b]行动[/b]"
 fit_content = true
 scroll_active = false
 
@@ -224,7 +223,6 @@ theme_override_constants/separation = 6
 [node name="ContinueButton" type="Button" parent="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin/VBox"]
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-text = "继 续"
 
 [node name="EndingPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -282,7 +280,6 @@ scroll_active = false
 [node name="RestartButton" type="Button" parent="EndingPanel/EndingCenter/EndingCard/EndingMargin/VBox"]
 custom_minimum_size = Vector2(0, 46)
 layout_mode = 2
-text = "再来一局"
 
 [node name="SubMenuPanel" type="Panel" parent="."]
 unique_name_in_owner = true
@@ -334,7 +331,6 @@ layout_mode = 2
 theme_override_colors/default_color = Color(0.376, 0.647, 0.98, 1)
 theme_override_font_sizes/normal_font_size = 20
 bbcode_enabled = true
-text = "[b]选择[/b]"
 fit_content = true
 scroll_active = false
 
@@ -383,17 +379,15 @@ theme_override_constants/separation = 20
 layout_mode = 2
 theme_override_colors/font_color = Color(0.376, 0.647, 0.98, 1)
 theme_override_font_sizes/font_size = 28
-text = "选择你的起始专业技能"
 horizontal_alignment = 1
 
 [node name="Desc" type="Label" parent="SkillSelectPanel/SkillSelectCenter/SkillSelectVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.639, 0.722, 1)
 theme_override_font_sizes/font_size = 15
-text = "该技能将从 Lv.3 开始，可以直接投递初级岗位"
 horizontal_alignment = 1
 
-[node name="SkillButtons" type="HBoxContainer" parent="SkillSelectPanel/SkillSelectCenter/SkillSelectVBox"]
+[node name="SkillButtons" type="VBoxContainer" parent="SkillSelectPanel/SkillSelectCenter/SkillSelectVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 12
@@ -442,8 +436,74 @@ scroll_active = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.639, 0.722, 0.6)
 theme_override_font_sizes/font_size = 14
-text = "点击任意处继续..."
 horizontal_alignment = 1
+
+[node name="TitlePanel" type="Panel" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleBG" type="ColorRect" parent="TitlePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.039, 0.055, 0.102, 1)
+
+[node name="TitleCenter" type="CenterContainer" parent="TitlePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleVBox" type="VBoxContainer" parent="TitlePanel/TitleCenter"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="RichTextLabel" parent="TitlePanel/TitleCenter/TitleVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(500, 120)
+layout_mode = 2
+theme_override_font_sizes/normal_font_size = 48
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="SubtitleLabel" type="Label" parent="TitlePanel/TitleCenter/TitleVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.639, 0.722, 0.8)
+theme_override_font_sizes/font_size = 16
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="TitlePanel/TitleCenter/TitleVBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="ButtonBox" type="HBoxContainer" parent="TitlePanel/TitleCenter/TitleVBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="LangButton" type="Button" parent="TitlePanel/TitleCenter/TitleVBox/ButtonBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 46)
+layout_mode = 2
+
+[node name="StartButton" type="Button" parent="TitlePanel/TitleCenter/TitleVBox/ButtonBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 46)
+layout_mode = 2
 
 [connection signal="pressed" from="SettlementPanel/SettlementCenter/SettlementCard/SettlementMargin/VBox/ContinueButton" to="." method="_on_settlement_continue"]
 [connection signal="pressed" from="EndingPanel/EndingCenter/EndingCard/EndingMargin/VBox/RestartButton" to="." method="_on_restart"]
+[connection signal="pressed" from="TitlePanel/TitleCenter/TitleVBox/ButtonBox/LangButton" to="." method="_on_title_lang_toggle"]
+[connection signal="pressed" from="TitlePanel/TitleCenter/TitleVBox/ButtonBox/StartButton" to="." method="_on_title_start"]

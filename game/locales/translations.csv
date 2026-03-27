@@ -1,0 +1,340 @@
+keys,zh,en
+SKILL_BACKEND,后端开发,Backend
+SKILL_FRONTEND,前端开发,Frontend
+SKILL_ALGORITHM,算法,Algorithm
+SKILL_DATA_ENGINEERING,数据工程,Data Eng.
+SKILL_INFRASTRUCTURE,基础设施,Infra
+SKILL_UNKNOWN,未知,Unknown
+GSKILL_COMMUNICATION,沟通,Comm.
+GSKILL_INTERVIEW,面试技巧,Interview
+BONUS_BACKEND,后端相关岗位薪资+10%,Backend job salary +10%
+BONUS_FRONTEND,面试通过率+8%,Interview pass rate +8%
+BONUS_ALGORITHM,大厂简历通过率+15%,Big corp resume rate +15%
+BONUS_DATA,"外包刷新率+15%，外包收入+20%","Outsource refresh +15%, income +20%"
+BONUS_INFRA,面试消耗1AP（原2AP）,Interview costs 1AP (was 2AP)
+SCALE_BIG,大厂,Big Corp
+SCALE_MEDIUM,中厂,Mid Corp
+SCALE_SMALL,小厂,Small Corp
+BENEFIT_HIGH,优厚,Generous
+BENEFIT_MEDIUM,中等,Average
+BENEFIT_NORMAL,普通,Basic
+STATUS_GOOD,良好,Good
+STATUS_STABLE,维持,Stable
+STATUS_STRUGGLING,艰难,Struggling
+COMPANY_bytedance,字节飞扬,ByteSoar
+COMPANY_deepmind,深渊后端,DeepBack
+COMPANY_cybertech,赛博科技,CyberTech
+COMPANY_geekcloud,极客云,GeekCloud
+COMPANY_hashworks,哈希工业,HashWorks
+COMPANY_stackflow,栈溢出,StackFlow
+COMPANY_recursion,递归传媒,Recursion Media
+COMPANY_pointshop,指针工坊,PointerShop
+WIND_HOT_NAME,%s需求激增,%s Demand Surge
+WIND_HOT_DESC,各大公司纷纷扩招%s方向工程师,Companies ramping up hiring for %s engineers
+WIND_SHRINK_NAME,%s岗位收缩,%s Jobs Shrinking
+WIND_SHRINK_DESC,%s方向岗位需求下降,Demand for %s roles is declining
+EVENT_ai_shock,AI浪潮冲击,AI Wave Impact
+EVENT_DESC_ai_shock,"AI大模型快速迭代，各公司裁员优化，经营状况普遍下滑","AI disruption causes layoffs, business conditions declining"
+EVENT_economy_down,经济不景气,Economic Downturn
+EVENT_DESC_economy_down,"融资环境恶化，新增岗位大幅减少","Funding environment worsening, fewer new positions"
+EVENT_policy_boost,政策利好,Policy Boost
+EVENT_DESC_policy_boost,"政府出台人才补贴政策，企业招聘意愿增强，面试通过率提升","Govt talent subsidies boost hiring and interview rates"
+EVENT_funding_boom,融资热潮,Funding Boom
+EVENT_DESC_funding_boom,"资本市场活跃，多家公司获得融资，经营状况改善","Active capital markets, companies funded, conditions improving"
+EVENT_industry_crackdown,行业整顿,Industry Crackdown
+EVENT_DESC_industry_crackdown,"监管部门出手整顿，所有公司暂停招聘一周","Regulators freeze all hiring for one week"
+JOB_jr_backend,初级后端开发,Jr. Backend Dev
+JOB_jr_frontend,初级前端开发,Jr. Frontend Dev
+JOB_jr_data_analyst,初级数据分析师,Jr. Data Analyst
+JOB_jr_ops,初级运维工程师,Jr. Ops Engineer
+JOB_jr_algo,初级算法工程师,Jr. Algorithm Engineer
+JOB_mid_fullstack,全栈开发,Fullstack Dev
+JOB_mid_search,搜索工程师,Search Engineer
+JOB_mid_data_eng,数据工程师,Data Engineer
+JOB_mid_sre,SRE工程师,SRE Engineer
+JOB_mid_bigdata,大数据开发,Big Data Dev
+JOB_mid_frontend,中级前端工程师,Mid Frontend Dev
+JOB_sr_fullstack,高级全栈架构师,Sr. Fullstack Architect
+JOB_sr_recommend,推荐系统专家,Recommendation Expert
+JOB_sr_data_platform,数据平台负责人,Data Platform Lead
+JOB_sr_ai_app,AI应用工程师,AI App Engineer
+JOB_sr_sre,高级SRE,Senior SRE
+TIER_JUNIOR,初级,Junior
+TIER_MID,中级,Mid-level
+TIER_SENIOR,高级,Senior
+OUTSOURCE_MID,中级外包,Mid Outsource
+OUTSOURCE_HIGH,高级外包,High Outsource
+OUTSOURCE_GENERIC,外包,Outsource
+SALARY_FORMAT,$%s/周,$%s/wk
+SEP_LIST,、,", "
+TOOL_NAME_mech_keyboard,机械键盘,Mech Keyboard
+TOOL_DESC_mech_keyboard,所有学习行动XP+0.5（每周前2次有效）,All study XP +0.5 (first 2/week)
+TOOL_HINT_mech_keyboard,适合：稳定成长路线,For: Steady growth
+TOOL_NAME_headphones,降噪耳机,Noise-Cancel Headphones
+TOOL_DESC_headphones,学习不受负面事件影响,Study immune to negative events
+TOOL_HINT_headphones,适合：防守型玩家,For: Defensive play
+TOOL_NAME_ipad,二手iPad,Used iPad
+TOOL_DESC_ipad,在职时每周自动+0.5XP到随机技能,+0.5 XP to random skill weekly while employed
+TOOL_HINT_ipad,适合：先就业再择业,For: Employ first
+TOOL_NAME_thinkpad,二手ThinkPad,Used ThinkPad
+TOOL_DESC_thinkpad,"外包成功率+20%，外包收入+$100","Outsource success +20%, income +$100"
+TOOL_HINT_thinkpad,适合：外包流,For: Outsource builds
+TOOL_NAME_coffee_machine,咖啡机,Coffee Machine
+TOOL_DESC_coffee_machine,每周生活费-$80,Weekly living cost -$80
+TOOL_HINT_coffee_machine,适合：长线经济规划,For: Long-term savings
+TOOL_NAME_resume_template,付费简历模板,Resume Template
+TOOL_DESC_resume_template,所有简历通过率+5%,All resume pass rate +5%
+TOOL_HINT_resume_template,适合：万金油选择,For: All-around pick
+TOOL_NAME_zhishixingqiu,知识星球会员,Knowledge Planet Sub
+TOOL_DESC_zhishixingqiu,"外包刷新概率+15%，外包收入+$80","Outsource refresh +15%, income +$80"
+TOOL_HINT_zhishixingqiu,适合：外包流,For: Outsource builds
+TOOL_NAME_nice_shirt,得体的衬衫,Nice Shirt
+TOOL_DESC_nice_shirt,面试通过率+8%,Interview pass rate +8%
+TOOL_HINT_nice_shirt,适合：面试冲刺,For: Interview sprints
+TOOL_NAME_linkedin,LinkedIn会员,LinkedIn Premium
+TOOL_DESC_linkedin,人脉行动每次+2（原+1）,Networking gives +2 (was +1)
+TOOL_HINT_linkedin,适合：社交流加速,For: Social builds
+TOOL_NAME_coworking,共享办公月卡,Coworking Pass
+TOOL_DESC_coworking,"每周自动+0.5人脉，零工收入+20%","Auto +0.5 network/wk, gig income +20%"
+TOOL_HINT_coworking,适合：社交+经济复合,For: Social + economy
+TRAIT_NAME_juanwang,卷王,Grind Master
+TRAIT_COND_juanwang,连续3周每周学习≥4次（任意技能组合）,Study ≥4 times/week for 3 consecutive weeks
+TRAIT_EFFECT_juanwang,所有学习XP+0.5,All study XP +0.5
+TRAIT_SIDE_juanwang,「突发低烧」概率翻倍,Fever event chance doubled
+TRAIT_NAME_speedrun,速通达人,Speedrunner
+TRAIT_COND_speedrun,任一专业技能0→5耗时≤4周,Any skill 0→5 in ≤4 weeks
+TRAIT_EFFECT_speedrun,该技能后续升级XP需求-1（最低1）,That skill's level-up XP -1 (min 1)
+TRAIT_NAME_duomian,多面手,Jack of All Trades
+TRAIT_COND_duomian,3个不同专业技能≥3,3 different skills at ≥Lv.3
+TRAIT_EFFECT_duomian,中级岗位面试通过率+10%,Mid-level interview rate +10%
+TRAIT_NAME_mianba,面霸,Interview Ace
+TRAIT_COND_mianba,累计通过3次面试,Pass 3 interviews total
+TRAIT_EFFECT_mianba,面试基础率+10%,Base interview rate +10%
+TRAIT_NAME_haiwang,海王,Spray & Pray
+TRAIT_COND_haiwang,累计2周使用海投,Use mass apply for 2 weeks
+TRAIT_EFFECT_haiwang,海投随机匹配质量提升（至少1个匹配最高技能方向）,Mass apply matches best skill (≥1 match)
+TRAIT_NAME_negotiator,谈判专家,Negotiator
+TRAIT_COND_negotiator,拒绝Offer后拿到更高薪Offer,Get higher offer after rejecting one
+TRAIT_EFFECT_negotiator,所有Offer薪资+10%,All offer salary +10%
+TRAIT_NAME_conservative,细水长流,Penny Pincher
+TRAIT_COND_conservative,"存款连续4周>$3,000","Savings >$3,000 for 4 consecutive weeks"
+TRAIT_EFFECT_conservative,每周生活费-$50,Weekly living cost -$50
+TRAIT_NAME_slasher,斜杠青年,Side Hustler
+TRAIT_COND_slasher,累计零工/外包≥8次,8+ gig/outsource completions
+TRAIT_EFFECT_slasher,所有零工/外包收入+25%,All gig/outsource income +25%
+TRAIT_NAME_desperate,背水一战,Backs to the Wall
+TRAIT_COND_desperate,现金低于$500,Cash below $500
+TRAIT_EFFECT_desperate,所有行动效果+20%,All action effects +20%
+TRAIT_SIDE_desperate,"现金>$1,500后消失","Disappears when cash >$1,500"
+TRAIT_NAME_social_butterfly,社牛,Social Butterfly
+TRAIT_COND_social_butterfly,人际关系≥7,Networking ≥7
+TRAIT_EFFECT_social_butterfly,"零工/外包+30%，面试通过率+5%","Gig/outsource +30%, interview rate +5%"
+TRAIT_NAME_insider,圈内人,Connected
+TRAIT_COND_insider,通过内推获得面试≥2次,≥2 interviews via referral
+TRAIT_EFFECT_insider,内推简历通过率倍率从×1.5升到×2.0,Referral resume multiplier: ×1.5 → ×2.0
+TRAIT_NAME_outsource_pro,外包达人,Outsource Pro
+TRAIT_COND_outsource_pro,累计完成5次外包,Complete 5 outsource jobs
+TRAIT_EFFECT_outsource_pro,"外包刷新概率+20%，外包失败率降为0","Outsource refresh +20%, failure rate → 0"
+ENDING_S,人生赢家,Life Winner
+ENDING_A,稳步上升,Rising Steady
+ENDING_B,站稳脚跟,Getting By
+ENDING_C,艰难求生,Barely Surviving
+ENDING_F,Game Over,Game Over
+ENDING_DESC_S,大厂高级岗，年薪百万不是梦。你不仅上岸了，还上了最好的岸。,Sr. role at a top company. Your dream salary is within reach.
+ENDING_DESC_A,中级岗位，收入不错，还有成长空间。这个起点，不亏。,A solid mid-level gig with room to grow. Not a bad start.
+ENDING_DESC_B,虽然不是理想工作，但至少有工资发。先活下来，再说别的。,"Not your dream job, but at least there's a paycheck."
+ENDING_DESC_C,勉强没饿死，但前路漫漫。也许下次会更好。,You barely scraped by. Maybe next time will be better.
+ENDING_DESC_F,积蓄耗尽，你不得不回老家了……,Savings depleted. Time to head back home...
+GHOST_1,（%s 看了眼你的简历，然后沉默了。）,(%s glanced at your resume and went silent.)
+GHOST_2,（简历石沉大海，%s 从此杳无音讯。）,(%s ghosted you. Your resume vanished.)
+GHOST_3,（%s 把你的简历移入了回收站，但没有清空。）,(%s moved your resume to the recycle bin.)
+GHOST_4,（%s 的 HR 可能还没上班。）,(%s's HR might not be in yet.)
+UNDERQUALIFIED_1,"综合评估后，您的技能暂时与岗位需求有差距，感谢投递。","After review, your skills don't quite match. Thanks for applying."
+UNDERQUALIFIED_2,"经过仔细阅读，%s 决定暂不推进，欢迎您提升后再来。","After careful review, %s decided not to proceed. Try again later."
+UNDERQUALIFIED_3,"您的申请我们已收到，但目前的匹配度不符合要求。","We received your application, but the match isn't there yet."
+INTERVIEW_FAIL_1,"说不出哪儿不好，就是感觉不太对。","Can't say what went wrong, it just didn't click."
+INTERVIEW_FAIL_2,面试官觉得您与团队文化契合度有些担忧。,The interviewer had concerns about culture fit.
+INTERVIEW_FAIL_3,"双方聊得有点不在一个频道，最终没有推进。","You were on different wavelengths, no follow-up."
+INTERVIEW_FAIL_4,"技术没问题，但沟通风格让面试官有些顾虑。","Tech was fine, but communication style raised concerns."
+INTERVIEW_FAIL_5,"虽然您表现出色，但此次竞争激烈，遗憾落选。","You did great, but competition was fierce. Sorry."
+INTERVIEW_FAIL_6,"HC 有限，最终选了另一位候选人，非常抱歉。","Limited headcount, went with another candidate. Apologies."
+FAKE_CAUGHT_1,"面试官深入追问技术细节，发现与简历描述不符，面试提前结束。","Interviewer dug into details, found discrepancies. Interview ended early."
+FAKE_CAUGHT_2,"被要求现场手写代码时露馅了，面试官表情微妙。","Asked to write code on the spot — cover blown. Awkward."
+FAKE_CAUGHT_3,"项目经历被追问后前后矛盾，面试官委婉地结束了面试。","Project experience fell apart under questioning. Interview over."
+RANDOM_computer_broke,🔧 电脑出了点问题,🔧 Computer Trouble
+RANDOM_computer_broke_DESC,紧急维修费 $300。,Emergency repair costs $300.
+RANDOM_rent_increase,🏠 临时涨租,🏠 Rent Increase
+RANDOM_rent_increase_DESC,"房东要求补交差价，额外支出 $250。","Landlord demands extra — $250 out of pocket."
+RANDOM_unexpected_expense,💸 意外支出,💸 Unexpected Expense
+RANDOM_unexpected_expense_DESC,突发支出 -$500。,Sudden expense -$500.
+RANDOM_sick,🤒 突发低烧,🤒 Feeling Sick
+RANDOM_sick_DESC,下周最大能量 -2。,Max energy -2 next week.
+RANDOM_freelance_gig,💰 接到小单,💰 Quick Gig
+RANDOM_freelance_gig_DESC,"意外接到外包小单，收入 +$350。","Picked up a small freelance job, +$350."
+RANDOM_good_mood,☀ 今天状态奇好,☀ Great Day
+RANDOM_good_mood_DESC,下周能量上限 +2。,Max energy +2 next week.
+RANDOM_cheap_food,🍜 发现省钱攻略,🍜 Budget Win
+RANDOM_cheap_food_DESC,"附近超市大促，生活补贴 +$250。","Supermarket sale nearby, saved $250."
+RANDOM_flash_inspiration,💡 灵感爆发,💡 Flash of Inspiration
+RANDOM_flash_inspiration_DESC,下周学习任意专业技能获得双倍XP（疲劳阈值+1）！,Double XP for any skill study next week (fatigue threshold +1)!
+RANDOM_networking_opportunity,🤝 社交机会,🤝 Networking Opportunity
+RANDOM_networking_opportunity_DESC,"参加行业聚会，人际关系+1。","Attended an industry meetup, networking +1."
+RANDOM_quarterly_bonus,🎁 季度奖金,🎁 Quarterly Bonus
+RANDOM_quarterly_bonus_DESC,公司发放季度奖金 +$600。,Company issued quarterly bonus +$600.
+PROGRESS_juanwang,连续学习周数：%d/3,Consecutive study weeks: %d/3
+PROGRESS_speedrun,（需在4周内将专业技能0→5）,(Reach skill 0→5 within 4 weeks)
+PROGRESS_duomian,专业技能≥3的数量：%d/3,Skills at ≥Lv.3: %d/3
+PROGRESS_mianba,面试通过：%d/3,Interviews passed: %d/3
+PROGRESS_haiwang,使用海投周数：%d/2,Mass apply weeks: %d/2
+PROGRESS_negotiator_waiting,"已拒绝Offer（最高$%d/周），等待更高薪Offer","Rejected offer (max $%d/wk), waiting for higher"
+PROGRESS_negotiator_none,尚未拒绝过Offer,Haven't rejected any offer yet
+PROGRESS_conservative,"连续>$3,000周数：%d/4","Weeks above $3,000: %d/4"
+PROGRESS_slasher,零工/外包次数：%d/8,Gig/outsource count: %d/8
+PROGRESS_desperate,现金：$%d（<$500触发）,"Cash: $%d (triggers below $500)"
+PROGRESS_social_butterfly,人际关系：%d/7,Networking: %d/7
+PROGRESS_insider,内推面试：%d/2,Referral interviews: %d/2
+PROGRESS_outsource_pro,外包完成：%d/5,Outsource completed: %d/5
+UI_WEEK_FORMAT,[b]第 %d 周[/b] / %d,[b]Week %d[/b] / %d
+UI_COMPANY_LIST,公司列表,Companies
+UI_ACTION,行动,Actions
+UI_SELECT,选择,Select
+UI_SKILL_SELECT_TITLE,选择你的起始专业技能,Choose Your Starting Skill
+UI_SKILL_SELECT_DESC,"该技能将从 Lv.3 开始，可以直接投递初级岗位","Starts at Lv.3, can apply to junior positions directly"
+UI_CLICK_CONTINUE,点击任意处继续...,Click anywhere to continue...
+UI_CONTINUE,继 续,Continue
+UI_RESTART,再来一局,Play Again
+UI_CLOSE,关闭,Close
+UI_CARD_SKILLS,角色属性,Skills
+UI_CARD_STATUS,状态,Status
+UI_CARD_JOB,在职,Employment
+UI_CARD_APPLICATIONS,求职进度,Applications
+UI_CARD_TOOLS,工具,Tools
+UI_CARD_TRAITS,特质,Traits
+UI_CARD_OUTSOURCE,外包机会,Outsource
+UI_WORK_EXP,工作经验,Work Exp.
+UI_BIGCO_EXP,大厂经验,Big Corp Exp.
+UI_GAP_TIME,Gap时间,Gap Time
+UI_OUTSOURCE_DONE,外包完成,Outsource Done
+UI_NETWORKING,人际关系,Networking
+UI_PERSONAL_PROJECT,个人作品,Portfolio
+UI_DONE,已完成,Done
+UI_ACTION_POINTS,行动力,AP
+UI_RESUME_FAKING,简历包装中,Resume Faking
+UI_RESUME_FAKE_WARN,"技能+1，面试30%翻车风险","Skill +1, 30% interview fail risk"
+UI_UNEMPLOYED,未就业,Unemployed
+UI_WEEKLY_SALARY,周薪,Weekly Salary
+UI_QUIT_PENDING,已提出辞职，下周生效,"Resignation submitted, effective next week"
+UI_APPLIED,已投递,Applied
+UI_HAS_INTERVIEW,有面试机会,Interview Available
+UI_INTERVIEWING,面试中,Interviewing
+UI_OFFER_LEFT,Offer（剩余%d周）,Offer (%d wk left)
+UI_NONE,（无）,(None)
+UI_SECTION_STUDY,学习,Study
+UI_SECTION_JOB,求职,Job Search
+UI_SECTION_SOCIAL,社交,Social
+UI_SECTION_SURVIVAL,生存,Survival
+UI_SECTION_OTHER,其他,Other
+UI_FATIGUE,⚡疲劳,⚡Fatigued
+UI_FOCUSED_APPLY,精投简历,Targeted Apply
+UI_MASS_APPLY,海投简历,Mass Apply
+UI_MASS_APPLY_TIP,随机投递%d个岗位,Randomly apply to %d positions
+UI_INTERVIEW_FORMAT,面试：%s  ≈%.0f%%,Interview: %s  ≈%.0f%%
+UI_FAKED_TAG,★包装,★Faked
+UI_FAKE_RESUME,包装简历,Fake Resume
+UI_FAKE_RESUME_TIP,"技能显示+1，但面试有30%翻车风险","Skill display +1, but 30% interview fail risk"
+UI_CANCEL_FAKE,取消包装  ★生效中,Cancel Fake  ★Active
+UI_FAKE_ACTIVE_TIP,包装简历生效中（技能+1），面试有30%翻车风险,"Resume faking active (skill +1), 30% interview fail risk"
+UI_NETWORKING_ACTION,人际关系  +%d,Networking  +%d
+UI_PROJECT_DONE,个人作品  ✔已完成,Portfolio  ✔Done
+UI_PROJECT_PROGRESS,个人作品  +1进度  (%d/%d),Portfolio  +1  (%d/%d)
+UI_GIG_PARTTIME,打零工·兼职  +$%s,Part-time Gig  +$%s
+UI_GIG_FULLTIME,打零工·全职  +$%s,Full-time Gig  +$%s
+UI_OUTSOURCE_ACTION,接外包·%s  +$%s,Outsource·%s  +$%s
+UI_SHOP,逛二手市场,Browse Market
+UI_ACCEPT_OFFER,接受Offer：%s（$%s/周）,Accept Offer: %s ($%s/wk)
+UI_REJECT_OFFER,拒绝Offer：%s,Reject Offer: %s
+UI_QUIT,辞职（下周生效）,Quit (effective next week)
+UI_END_WEEK,结 束 本 周,End Week
+UI_SELECT_APPLY,选择投递岗位,Select Position to Apply
+UI_FAKE_APPLY_HINT,★ 简历包装生效中：技能显示+1，通过率已提升,★ Resume faking active: skill +1 — pass rate boosted
+UI_COMPANY_DETAIL,%s 详情,%s Details
+UI_LABEL_SCALE,规模,Scale
+UI_LABEL_BENEFIT,福利水平,Benefits
+UI_LABEL_SALARY_MULT,薪资倍率,Salary Mult.
+UI_LABEL_STATUS,经营状况,Business
+UI_LABEL_PREF_SKILLS,倾向技能,Preferred Skills
+UI_CURRENT_OPENINGS,当前在招岗位,Current Openings
+UI_NO_OPENINGS,暂无在招岗位,No openings
+UI_BACK_COMPANY,← 返回公司列表,← Back to Companies
+UI_SHOP_TITLE,二手市场,Used Market
+UI_SHOP_CASH,"现金: $%s","Cash: $%s"
+UI_WEEKLY_COST_FORMAT,+ $%d/周,+ $%d/wk
+UI_BAG_FULL,"背包已满，购买新工具需要替换一个旧工具","Inventory full, buying requires replacing an existing tool"
+UI_SELECT_REPLACE,选择要替换的工具,Select Tool to Replace
+UI_BUYING,购买,Buying
+UI_REPLACE,替换,Replace
+UI_CANCEL,← 取消,← Cancel
+UI_BENEFIT_FORMAT,福利：%s,Benefits: %s
+UI_STATUS_FORMAT,经营：%s,Business: %s
+UI_PREF_FORMAT,倾向：%s,Preferred: %s
+UI_HIRING_FORMAT,在招：%d,Openings: %d
+UI_SETTLEMENT_TITLE,第 %d 周结算,Week %d Settlement
+UI_INCOME_SALARY,▲ 工资收入,▲ Salary Income
+UI_COST_LIVING,▼ 生活支出,▼ Living Cost
+UI_COST_TOOLS,▼ 工具费用,▼ Tool Cost
+UI_CASH,现金,Cash
+UI_YOU_QUIT,你已离职,You have quit
+UI_OFFER_EXPIRED,⏰ Offer已过期：%s,⏰ Offer expired: %s
+UI_TRAIT_GAINED,★ 获得特质：%s — %s,★ Trait gained: %s — %s
+UI_TRAIT_LOST,☆ 失去特质：%s,☆ Trait lost: %s
+UI_ENDING_FINAL,最终状态,Final Status
+UI_ENDING_EMPLOYED,在职：%s @ %s  周薪,Employed: %s @ %s  Weekly
+UI_ENDING_CASH,剩余现金,Remaining Cash
+UI_ENDING_PROJECTED,预估年收入,Projected Annual Income
+UI_ENDING_WEEKLY_NET,周薪 $%s - 生活费 $%s = 每周净收入 $%s,"Weekly $%s - living $%s = net $%s"
+UI_ENDING_ANNUAL,年净收入,Annual Net Income
+UI_ENDING_PLUS_CASH,加上剩余现金,Plus remaining cash
+UI_ENDING_PROJECTED_INCOME,预估收入,Projected Income
+UI_ENDING_ACHIEVEMENTS,成就,Achievements
+UI_ENDING_BEST_SKILL,技能最高,Highest Skill
+UI_ENDING_WORK_EXP_FMT,工作经验：%d周    外包完成：%d次,Work exp: %d wk    Outsource: %d
+UI_ENDING_STATS,投递：%d  面试：%d  Offer：%d  被拒：%d,Applied: %d  Interview: %d  Offer: %d  Rejected: %d
+UI_ENDING_BEST_OFFER,最高薪Offer,Best Offer
+UI_ENDING_GIG_TOTAL,零工/外包总收入,Total Gig/Outsource Income
+UI_ENDING_STUDY_TOTAL,学习总次数：%d    人际关系：%d,Study count: %d    Networking: %d
+UI_ENDING_TRAITS,获得特质,Traits Earned
+MSG_RESUME_PASS,✅ %s：简历通过！已安排面试。%s,✅ %s: Resume passed! Interview scheduled. %s
+MSG_REFERRAL_NOTE,（内推加成！）,(Referral bonus!)
+MSG_RESUME_FAIL,❌ %s：%s,❌ %s: %s
+MSG_FAKE_CAUGHT,❌ %s（包装被拆穿）：%s,❌ %s (Fake caught): %s
+MSG_OFFER,🎉 %s Offer！（周薪 $%d，%d周内有效）,🎉 %s Offer! ($%d/wk — valid %d wks)
+MSG_INTERVIEW_FAIL,❌ %s 面试未通过：%s,❌ %s Interview failed: %s
+MSG_REFERRAL,"🤝 朋友内推：%s，简历通过率×%.0f%%！",🤝 Referral: %s — resume rate ×%.0f%%!
+MSG_OUTSOURCE_AVAIL,💼 外包机会：%s（%s Lv.%d+，%dEP→$%d）,"💼 Outsource available: %s (%s Lv.%d+, %dEP→$%d)"
+MSG_WIND_NEW,📊 市场风向：%s（持续%d周）,📊 Market trend: %s (%d wks)
+MSG_EVENT_NEW,⚡ 市场事件：%s（持续%d周）,⚡ Market event: %s (%d wks)
+MSG_WIND_END,📊 市场风向「%s」已结束,📊 Market trend "%s" ended
+MSG_EVENT_END,📰 市场事件「%s」已结束,📰 Market event "%s" ended
+MSG_QUIT,你已离职：%s @ %s,You quit: %s @ %s
+MSG_IPAD,📱 iPad通勤学习：+0.5 %s XP,📱 iPad commute study: +0.5 %s XP
+MSG_WIND_LEFT,%s（剩%d周）,%s (%d wk left)
+MSG_EVENT_LEFT,%s（剩%d周）,%s (%d wk left)
+MSG_OUTSOURCE_INFO,%s（%s，%dEP→$%d）,"%s (%s, %dEP→$%d)"
+INTRO_ZH_1,"[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]你是一个初出茅庐的程序员。\n\n毕业季的校园里，同学们纷纷拿到了心仪的 Offer，\n而你却还在为未来迷茫。\n\n怀揣着一笔不多的积蓄，\n你决定用接下来 12 周的时间，\n闯出属于自己的一片天。\n\n学技能，投简历，面试，接外包……\n每一个选择都至关重要。[/color][/center]","[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]You're a fresh programmer just out of school.\n\nWhile classmates land dream offers left and right,\nyou're still lost about your future.\n\nWith limited savings in hand,\nyou decide to spend the next 12 weeks\ncarving out your own path.\n\nStudy skills, send resumes, interview, freelance...\nEvery choice matters.[/color][/center]"
+INTRO_ZH_2,"[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]秋招季。\n\n你看着招聘网站上 99+ 的已读不回，\n关掉了第 47 个「感谢您的投递，\n但很遗憾……」的邮件。\n\n卡里的余额在一天天减少，\n但你知道只要坚持下去，\n总会有一扇门为你打开。\n\n12 周。这是你给自己定下的最后期限。[/color][/center]","[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]Recruiting season.\n\nYou stare at the 99+ ""read"" marks with no replies,\nclosing yet another ""Thank you for applying,\nbut unfortunately..."" email.\n\nYour balance shrinks day by day,\nbut you know if you keep going,\na door will eventually open.\n\n12 weeks. That's the deadline you've set.[/color][/center]"
+INTRO_ZH_3,"[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]""您的简历已进入人才库。""\n\n翻译：我们不要你。\n\n你合上笔记本电脑，深吸一口气，\n打开了 LeetCode。\n\n没关系。从今天开始，\n用 12 周时间，\n把自己打造成他们拒绝不了的人。\n\n毕竟，404 之后，总会有 200 OK。[/color][/center]","[center][color=#60A5FA][font_size=32]Offer Not Found[/font_size][/color]\n\n[color=#E2E8F0]""Your resume has been added to our talent pool.""\n\nTranslation: we don't want you.\n\nYou close your laptop, take a deep breath,\nand open LeetCode.\n\nIt's fine. Starting today,\n12 weeks to turn yourself into\nsomeone they can't say no to.\n\nAfter all, after 404 comes 200 OK.[/color][/center]"
+UI_SCALE_TAG_BIG,[大厂],[Big Corp]
+UI_SCALE_TAG_MED,[中厂],[Mid Corp]
+UI_SCALE_TAG_SMALL,[小厂],[Small Corp]
+UI_TOOLS_HEADER,工具 [%d/%d],Tools [%d/%d]
+UI_ENERGY_COST,占用 %dAP,Costs %dAP
+UI_SALARY_WEEK,$%s/周,$%s/wk
+UI_REQ_LABEL,需要：%s,Requires: %s
+UI_COMM_LV,沟通 Lv.%d,Comm. Lv.%d
+UI_STUDY_XP,%s  +1XP%s,%s  +1XP%s
+UI_BENEFIT_SALARY_MULT,%s（薪资倍率 ×%.2f）,%s (salary mult. ×%.2f)
+UI_LANG_TOGGLE,EN,中文
+UI_GAME_TITLE,求职未半,Offer Not Found
+UI_GAME_SUBTITLE,一个程序员的12周求职生存游戏,A 12-week programmer job-hunting survival game
+UI_START,开始游戏,Start Game
+UI_RESTART_GAME,重新开始,Restart

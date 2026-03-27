@@ -191,18 +191,35 @@ static func style_menu_button(btn: Button, font_size: int = 14) -> void:
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 
 
+## 标题页按钮（透明底 + 发光边框）
+static func style_title_button(btn: Button, font_size: int = 18) -> void:
+	var border_color := Color("#3B82F6", 0.6)
+	var border_hover := Color("#60A5FA", 0.9)
+	btn.add_theme_stylebox_override("normal",
+		make_flat(Color(0.06, 0.09, 0.16, 0.4), CORNER_MD, border_color, 1, 24, 12, 24, 12))
+	btn.add_theme_stylebox_override("hover",
+		make_flat(Color(0.08, 0.12, 0.22, 0.6), CORNER_MD, border_hover, 2, 24, 12, 24, 12))
+	btn.add_theme_stylebox_override("pressed",
+		make_flat(Color(0.05, 0.07, 0.14, 0.5), CORNER_MD, ACCENT_PRIMARY, 2, 24, 12, 24, 12))
+	btn.add_theme_color_override("font_color", Color("#93C5FD"))
+	btn.add_theme_color_override("font_hover_color", Color.WHITE)
+	btn.add_theme_color_override("font_pressed_color", Color("#60A5FA"))
+	btn.add_theme_font_size_override("font_size", font_size)
+	btn.custom_minimum_size = Vector2(0, 50)
+
+
 ## 技能选择卡片按钮
 static func style_skill_card(btn: Button) -> void:
 	btn.add_theme_stylebox_override("normal",
-		make_flat(BG_CARD, CORNER_LG, BORDER_BLUE, 1, 20, 16, 20, 16))
+		make_flat(BG_CARD, CORNER_LG, BORDER_BLUE, 1, 12, 10, 12, 10))
 	btn.add_theme_stylebox_override("hover",
-		make_flat(Color("#1E2D42"), CORNER_LG, ACCENT_PRIMARY, 2, 20, 16, 20, 16))
+		make_flat(Color("#1E2D42"), CORNER_LG, ACCENT_PRIMARY, 2, 12, 10, 12, 10))
 	btn.add_theme_stylebox_override("pressed",
-		make_flat(Color("#152030"), CORNER_LG, ACCENT_PRIMARY, 2, 20, 16, 20, 16))
+		make_flat(Color("#152030"), CORNER_LG, ACCENT_PRIMARY, 2, 12, 10, 12, 10))
 	btn.add_theme_color_override("font_color", TEXT_PRIMARY)
 	btn.add_theme_color_override("font_hover_color", Color.WHITE)
-	btn.add_theme_font_size_override("font_size", 18)
-	btn.custom_minimum_size = Vector2(200, 90)
+	btn.add_theme_font_size_override("font_size", 1)
+	btn.custom_minimum_size = Vector2(190, 100)
 
 
 # ══════════════════════════════════════════
